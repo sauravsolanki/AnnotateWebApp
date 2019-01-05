@@ -1,20 +1,27 @@
 from myproject import app,db,socketio
-from flask import render_template, redirect, request, url_for, flash,abort
+from flask import render_template, redirect, request, url_for, flash,abort,jsonify
 from flask_login import login_user,login_required,logout_user,current_user
-from myproject.models import User,UIDS,RequestUIDS,PUIDS,Info
+from myproject.models import User,UIDS,RequestUIDS,PUIDS,Info,ImageLinks
 from myproject.forms import LoginForm, RegistrationForm
 from werkzeug.security import generate_password_hash, check_password_hash
 from random import randint
 import time
 from flask_socketio import  send,emit
-
+from flask_pymongo import PyMongo,MongoClient
+from flask import Response
+from bson.json_util import loads
+import json
+app.config["MONGO_URI"] = "mongodb://localhost:27017/annotate"
+mongo = PyMongo(app)
+n=14
 @socketio.on('myconnection')
 def test_connect(msg):
     print(msg)
 
 @socketio.on('fetchUID')
 def fetchUID(aid):
-    # TODO: added to request queue
+    global n
+    #  added to request queue
     caid=RequestUIDS(ruid=aid)
     db.session.add(caid)
     db.session.commit()
@@ -27,27 +34,82 @@ def fetchUID(aid):
         db.session.delete(aid[0])
         db.session.commit()
 
-# TODO: to delete the uid that is processed
+#  to delete the uid that is processed
     uids=UIDS.query.all()
     if uids:
         db.session.delete(uids[0])
         db.session.commit()
+        # not for deploy ,comment it
+        # db.session.add(uids[0].uid)
+        # db.session.commit()
+        # till here
 
-# TODO: to push uid to processed uid
+#  to push uid to processed uid
         puid=PUIDS(uids[0].uid)
         db.session.add(puid)
         db.session.commit()
 
-# TODO: add the info into table
+
+#   send the image links also
+        imagelink=ImageLinks.query.filter_by(id=int(uids[0].uid)).first()
+        print('Allocated: '+ str(imagelink.links))
+
+#  add the info into table
         dateOfAnnotation=time.ctime()
-        info=Info(str(current_user.id),str(uids[0].uid),dateOfAnnotation)
+        info=Info(str(current_user.id),str(uids[0].uid),dateOfAnnotation,str(imagelink.links))
         db.session.add(info)
         db.session.commit()
 
-        print('Allocated: '+ str(uids[0].uid))
-        emit('fetchUIDAnswer',uids[0].uid)
+        # emit('fetchUIDAnswer',uids[0].uid)
+        # TODO(1): send json file from the database
+        n=int(uids[0].uid)
+        jsonfile = mongo.db.docs.find_one_or_404({"file": n})
+        print(jsonfile)
+        jsonfile.pop('_id')
+        jsonfile.pop('file')
+        jsonfile=json.dumps(jsonfile)
+
+        # r = json.dumps(jsonfile)
+        # print(type(r)) #Output str
+        # loaded_r = json.loads(r)
+        # print(type(loaded_r)) #Output dict
+        # t=json.load(json.dumps(jsonfile))
+
+        emit('fetchUIDAnswer',str(jsonfile))
     else:
         emit('fetchUIDAnswer',"None Allocated! Please Wait")
+
+# @socketio.on('json')
+# def handle_json(json):
+#     print('received json: ' + str(json))
+
+@socketio.on('mydata')
+def mydata(data):
+    print(type(data)) # <class 'str'>
+    # print('received data: ' + (data))
+    global n
+    jsonfile=json.loads(data)
+    jsonfile["file"]=n
+    # due to presence of object id ,update operation not working
+    # TODO(4):
+    mongo.db.docs.delete_one({"file":n})
+    mongo.db.docs.insert(jsonfile,check_keys=False)
+    # d = json.load(data)
+    #mongo.db.docs.update_one({"file":3},{"$set": d}, upsert=True)
+    # mongo.db.docs.update_one({"file":11},{"$set": data }, upsert=True)
+    n=n+1
+
+
+@socketio.on('update')
+def update(json_data):
+    #w=1, upsert=True
+    # mongo.db.docs.update_one({"file":3},{"$set": {"file":10}}, upsert=True)
+    # return "Update Successful!"
+    # update nth file
+    d = json.load(json_data)
+    mongo.db.docs.update_one({"file":n},{"$set": d}, upsert=True)
+    # return redirect(url_for("annotationtool"))
+
 
 @socketio.on('pushebackUID')
 def pushebackUID(uid):
@@ -139,7 +201,7 @@ def register():
     return render_template('register.html', form=form)
 
 if __name__ == '__main__':
-    # for i in range(1,100):
+    # for i in range(1,792):
     #     t=UIDS(i)
     #     db.session.add(t)
     # db.session.commit()

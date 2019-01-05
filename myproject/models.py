@@ -38,12 +38,13 @@ class User(db.Model, UserMixin):
 #CREATE TABLE uids(
    # id    INTEGER  NOT NULL PRIMARY KEY
   # ,links VARCHAR(114) NOT NULL
-# ) 
+# )
 
 class UIDS(db.Model):
     __tablename__='uids'
     id=db.Column(db.Integer,primary_key=True)
     uid=db.Column(db.Integer,unique=True, nullable=False)
+    # links=db.Column(db.String(114),nullable=False)
 
     def __init__(self,uid):
         self.uid=uid
@@ -70,9 +71,21 @@ class Info(db.Model):
     id=db.Column(db.Integer,primary_key=True)
     aid=db.Column(db.String(64))
     uid=db.Column(db.String(64))
+    imagelinks=db.Column(db.String(120))# time.ctime()
     dateOfAnnotation=db.Column(db.String(100))# time.ctime()
 
-    def __init__(self,aid,uid,dateOfAnnotation):
+    def __init__(self,aid,uid,dateOfAnnotation,imagelinks):
         self.aid=aid
         self.uid=uid
         self.dateOfAnnotation=dateOfAnnotation
+        self.imagelinks=imagelinks
+
+# CREATE TABLE imagelinks(
+   # id    INTEGER  NOT NULL PRIMARY KEY
+  # ,links VARCHAR(114) NOT NULL
+# );
+class ImageLinks(db.Model):
+    __tablename__='imagelinks'
+
+    id=db.Column(db.Integer,primary_key=True)
+    links=db.Column(db.String(120),nullable=False)
