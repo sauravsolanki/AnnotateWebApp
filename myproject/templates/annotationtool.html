@@ -1274,6 +1274,8 @@
   				document.getElementById('start').disabled = true;
   			}
         // $("#result").html(json);
+        // tochange for mistake
+        console.log("Current UID Annotating: file "+JSON.parse(json).file);// printing undefined why??
         project_open_parse_json_file(json)
 
   			// curr_uid=uid;
@@ -2964,7 +2966,7 @@ POSSIBILITY OF SUCH DAMAGE.
         cancelable: true
       });
 
-      a.dispatchEvent(event);
+      // a.dispatchEvent(event);
       // var socket1 = io.connect('http://127.0.0.1:5000');
       // socket1.emit("mydata",data);
       // console.log(''+data));
@@ -7340,7 +7342,9 @@ POSSIBILITY OF SUCH DAMAGE.
             if (_via_user_input_data[key].placeholder) {
               placeholder = _via_user_input_data[key].placeholder;
             }
-            var tempLinks=curr_uid;
+            var tempLinks="https://www.tutorialspoint.com/mongodb/mongodb_datatype.htm";
+          // TODO: add file number when ask for new annotation and update it in current_file variable as parseInt(current_file)
+          // TODO: then load it and have fun!
             html.push('<span class="cell">' +
               '<input class="_via_user_input_variable" ' +
               value_html + ' ' +
@@ -8385,6 +8389,8 @@ POSSIBILITY OF SUCH DAMAGE.
       var socket1 = io.connect('http://127.0.0.1:5000');
       clear_display_area();
       _via_clear_reg_canvas();
+      // _via_project["aid"]={{aid}}
+      _via_project.file=parseInt(current_file);
       socket1.emit("mydata",JSON.stringify(_via_project));
       var data_blob = new Blob([JSON.stringify(_via_project)], {
         type: 'text/json;charset=utf-8'
@@ -8409,11 +8415,12 @@ POSSIBILITY OF SUCH DAMAGE.
     //   var selected_file = event.target.files[0];
     //   load_text_file(selected_file, project_open_parse_json_file);
     // }
-
+var current_file;
     function project_open_parse_json_file(json) {
       // TODO: ""(5)
-
-      var d = JSON.parse(json)
+      var d = JSON.parse(json);
+      current_file=d.file;
+      console.log("current file:"+current_file);
       if (d['_via_settings'] && d['_via_img_metadata'] && d['_via_attributes']) {
         // import settings
         project_import_settings(d['_via_settings']);

@@ -56,7 +56,9 @@ def fetchUID(aid):
 
 #  add the info into table
         dateOfAnnotation=time.ctime()
-        info=Info(str(current_user.id),str(uids[0].uid),dateOfAnnotation,str(imagelink.links))
+        # TODO:Info database, mark status Column as "in_process"
+        status="in_process"
+        info=Info(str(current_user.id),str(uids[0].uid),status,dateOfAnnotation,str(imagelink.links))
         db.session.add(info)
         db.session.commit()
 
@@ -64,9 +66,10 @@ def fetchUID(aid):
         # TODO(1): send json file from the database
         n=int(uids[0].uid)
         jsonfile = mongo.db.docs.find_one_or_404({"file": n})
-        print(jsonfile)
+        # print(jsonfile)
         jsonfile.pop('_id')
-        jsonfile.pop('file')
+        # jsonfile.pop('file')
+        # tochange for mistake
         jsonfile=json.dumps(jsonfile)
 
         # r = json.dumps(jsonfile)
@@ -85,20 +88,31 @@ def fetchUID(aid):
 
 @socketio.on('mydata')
 def mydata(data):
+
     print(type(data)) # <class 'str'>
     # print('received data: ' + (data))
-    global n
+    # global n
     jsonfile=json.loads(data)
-    jsonfile["file"]=n
+    # print(jsonfile)
+    n=int(jsonfile['file'])
+    print("current file annotated "+str(n)+"by User Id :"+ str(current_user.id) )
     # due to presence of object id ,update operation not working
     # TODO(4):
     mongo.db.docs.delete_one({"file":n})
     mongo.db.docs.insert(jsonfile,check_keys=False)
+    # TODO:In Info database, update the corresponding uid column status as "annotated"
+    # it has data.file(uid)(here it is n variable ) and here we have str(current_user.id) as aid
+    status="annotated"
+    temp = Info.query.filter_by(uid=str(n),aid=str(current_user.id)).first()
+    temp.status=status
+    db.session.commit()
+    # first_puppy = Puppy.query.filter_by(age=107,name='Sammy').first()
+    # first_puppy.age = 180
+    # db.session.commit()
+
     # d = json.load(data)
     #mongo.db.docs.update_one({"file":3},{"$set": d}, upsert=True)
     # mongo.db.docs.update_one({"file":11},{"$set": data }, upsert=True)
-    n=n+1
-
 
 @socketio.on('update')
 def update(json_data):
@@ -205,4 +219,5 @@ if __name__ == '__main__':
     #     t=UIDS(i)
     #     db.session.add(t)
     # db.session.commit()
+    # db.create_all()
     socketio.run(app)

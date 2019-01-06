@@ -71,12 +71,15 @@ class Info(db.Model):
     id=db.Column(db.Integer,primary_key=True)
     aid=db.Column(db.String(64))
     uid=db.Column(db.String(64))
+    # TODO: add the status column
+    status=db.Column(db.String(10))
     imagelinks=db.Column(db.String(120))# time.ctime()
     dateOfAnnotation=db.Column(db.String(100))# time.ctime()
 
-    def __init__(self,aid,uid,dateOfAnnotation,imagelinks):
+    def __init__(self,aid,uid,status,dateOfAnnotation,imagelinks):
         self.aid=aid
         self.uid=uid
+        self.status=status
         self.dateOfAnnotation=dateOfAnnotation
         self.imagelinks=imagelinks
 
