@@ -3,13 +3,13 @@
 
 <head>
   <meta charset="UTF-8">
-	<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/1.4.8/socket.io.min.js"></script>
-	<script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
-	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
-	<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
-	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
-	<meta charset="utf-8">
-	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+  <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/1.4.8/socket.io.min.js"></script>
+  <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+  <meta charset="utf-8">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
 
 
 
@@ -1045,7 +1045,7 @@
       margin: 0.4rem 0;
     }
 
-    .aidclass{
+    .aidclass {
       bottom: 0;
       position: absolute;
       right: 0;
@@ -1257,59 +1257,76 @@
           </ul>
         </li>
         <!-- <li><a href="http://0.0.0.0:8090/logout">LOGOUT</a> </li> -->
-<!-- Added-->
+        <!-- Added-->
 
-  <script type="text/javascript">
-  	var curr_uid=0;
-  	$(document).ready(function() {
-  		var socket = io.connect('http://127.0.0.1:5000');
+        <script type="text/javascript">
+          var curr_uid = 0;
+          $(document).ready(function() {
+            var socket = io.connect('http://127.0.0.1:5000');
 
-  		socket.on('connect', function() {
-  		  socket.emit('myconnection','AID: '+{{aid}} + 'is connected');
-  		});
+            socket.on('connect', function() {
+              socket.emit('myconnection', 'AID: ' + {{aid}} + 'is connected');
+            });
 
-  		socket.on('fetchUIDAnswer', function(json) {
-        if (json) {
-  				document.getElementById('start').innerHTML = "Annotate Another";
-  				document.getElementById('start').disabled = true;
-  			}
-        // $("#result").html(json);
-        // tochange for mistake
-        console.log("Current UID Annotating: file "+JSON.parse(json).file);// printing undefined why??
-        project_open_parse_json_file(json)
+            socket.on('fetchUIDAnswer', function(json) {
+              if (json) {
+                document.getElementById('start').innerHTML = "Annotate Another";
+                document.getElementById('start').disabled = true;
+              }
+              // $("#result").html(json);
+              // tochange for mistake
+              console.log("Current UID Annotating: file " + JSON.parse(json).file); // printing undefined why??
+              project_open_parse_json_file(json)
 
-  			// curr_uid=uid;
-        // TODO(1) : On receiving JSON here, show it
-        // TODO(2) : When User click save button, update the corresponding annotated file
-  			console.log('Received JSON'+ json);
-  		});
+              // curr_uid=uid;
+              // TODO(1) : On receiving JSON here, show it
+              // TODO(2) : When User click save button, update the corresponding annotated file
+              console.log('Received JSON' + json);
+            });
 
-  		$('li #start').on('click', function() {
-  			// TODO: retrive it back from current_userId
-  			socket.emit('fetchUID',{{aid}});
-  			document.getElementById('start').innerHTML = "Please wait! Requesting for UID....";
-  			document.getElementById('exit').disabled = false;
+            $('li #start').on('click', function() {
+              // TODO: retrive it back from current_userId
+              socket.emit('fetchUID', {{aid}});
+              document.getElementById('start').innerHTML = "Please wait! Requesting for UID....";
+              document.getElementById('exit').disabled = false;
 
-  		});
+            });
+
+            $('li #newfile').on('click', function() {
+              // TODO: emit and get new file Image URL
+              document.getElementById('newfile').innerHTML = "Please wait! Requesting....";
+              socket.emit('fetchURL');
+            });
+
+            socket.on('fetchURLResponse', function(url) {
+              if (url) {
+                document.getElementById('newfile').innerHTML = "New File";
+              }
+              console.log(url);
+            });
 
 
-  		$('#exit').on('click', function() {
-  			// TODO: retrive it back from current_userId
-  			// var pushebackUID=document.getElementById('result').innerHTML
-  			// if(pushebackUID){
-  			   socket.emit('pushebackUID',curr_uid);
-  			// }
-  		});
-  	});
-  </script>
+            $('#exit').on('click', function() {
+              // TODO: retrive it back from current_userId
+              // var pushebackUID=document.getElementById('result').innerHTML
+              // if(pushebackUID){
+              socket.emit('pushebackUID', curr_uid);
+              // }
+            });
+          });
+        </script>
 
-<li>
-	<a id="start"> Start Annotating</a>
-</li>
+        <li>
+          <a id="newfile">New File</a>
+        </li>
 
-<li>
-	<a id="exit" href="{{url_for('home')}}" > Exit</a>
-</li>
+        <li>
+          <a id="start"> Start Annotating</a>
+        </li>
+
+        <li>
+          <a id="exit" href="{{url_for('home')}}"> Exit</a>
+        </li>
         <!--  <li>View
             <ul>
               <li onclick="image_grid_toggle()" title="Toggle between single image view and image grid view">Toggle image grid view</li>
@@ -1339,68 +1356,6 @@
 
     <!-- Shortcut toolbar -->
     <div class="toolbar">
-      <svg onclick="project_open_select_project_file()" viewbox="0 0 24 24">
-        <use xlink:href="#icon_open"></use>
-        <title>Open Project</title>
-      </svg>
-      <svg onclick="project_save_with_confirm()" viewbox="0 0 24 24">
-        <use xlink:href="#icon_save"></use>
-        <title>Save Project</title>
-      </svg>
-      <svg onclick="settings_panel_toggle()" viewbox="0 0 24 24">
-        <use xlink:href="#icon_settings"></use>
-        <title>Update Project Settings</title>
-      </svg>
-      <!--
-        <svg onclick="" viewbox="0 0 24 24"><use xlink:href="#icon_checkbox"></use><title>Locate Files</title></svg>
-        -->
-
-      <!--  <svg onclick="sel_local_data_file('annotations')" style="margin-left:1rem;" viewbox="0 0 24 24"><use xlink:href="#icon_fileupload"></use><title>Import Annotations from CSV</title></svg>
-        <svg onclick="download_all_region_data('csv')" viewbox="0 0 24 24"><use xlink:href="#icon_filedownload"></use><title>Download Annotations as CSV</title></svg> -->
-
-      <svg onclick="image_grid_toggle()" id="toolbar_image_grid_toggle" style="margin-left:1rem;" viewbox="0 0 24 24">
-        <use xlink:href="#icon_gridon"></use>
-        <title>Switch to Image Grid View</title>
-      </svg>
-      <svg onclick="toggle_annotation_editor(0)" viewbox="0 0 24 24">
-        <use xlink:href="#icon_insertcomment"></use>
-        <title>Toggle Annotation Editor</title>
-      </svg>
-
-      <svg onclick="move_to_prev_image()" style="margin-left:1rem;" viewbox="0 0 24 24">
-        <use xlink:href="#icon_prev"></use>
-        <title>Previous Image</title>
-      </svg>
-      <svg onclick="toggle_img_fn_list_visibility()" viewbox="0 0 24 24">
-        <use xlink:href="#icon_list"></use>
-        <title>Toggle Filename List</title>
-      </svg>
-      <svg onclick="move_to_next_image()" viewbox="0 0 24 24">
-        <use xlink:href="#icon_next"></use>
-        <title>Next Image</title>
-      </svg>
-
-      <svg onclick="zoom_in()" style="margin-left:1rem;" viewbox="0 0 24 24">
-        <use xlink:href="#icon_zoomin"></use>
-        <title>Zoom In</title>
-      </svg>
-      <svg onclick="zoom_out()" viewbox="0 0 24 24">
-        <use xlink:href="#icon_zoomout"></use>
-        <title>Zoom Out</title>
-      </svg>
-
-      <svg onclick="sel_all_regions()" viewbox="0 0 24 24" style="margin-left:1rem;">
-        <use xlink:href="#icon_selectall"></use>
-        <title>Select All Regions</title>
-      </svg>
-      <!--  <svg onclick="copy_sel_regions()" viewbox="0 0 24 24"><use xlink:href="#icon_copy"></use><title>Copy Regions</title></svg>
-        <svg onclick="paste_sel_regions_in_current_image()" viewbox="0 0 24 24"><use xlink:href="#icon_paste"></use><title>Paste Regions</title></svg>
-        <svg onclick="paste_to_multiple_images_with_confirm()" viewbox="0 0 24 24"><use xlink:href="#icon_pasten"></use><title>Paste Region in Multiple Images</title></svg>
-        <svg onclick="del_sel_regions_with_confirm()" viewbox="0 0 24 24"><use xlink:href="#icon_pasteundo"></use><title>Undo Regions Pasted in Multiple Images</title></svg> -->
-      <svg onclick="del_sel_regions()" viewbox="0 0 24 24">
-        <use xlink:href="#icon_close"></use>
-        <title>Delete Region</title>
-      </svg>
     </div>
     <!-- end of shortcut toolbar -->
     <input type="file" id="invisible_file_input" name="files[]" style="display:none">
@@ -7342,9 +7297,9 @@ POSSIBILITY OF SUCH DAMAGE.
             if (_via_user_input_data[key].placeholder) {
               placeholder = _via_user_input_data[key].placeholder;
             }
-            var tempLinks="https://www.tutorialspoint.com/mongodb/mongodb_datatype.htm";
-          // TODO: add file number when ask for new annotation and update it in current_file variable as parseInt(current_file)
-          // TODO: then load it and have fun!
+            var tempLinks = "https://www.tutorialspoint.com/mongodb/mongodb_datatype.htm";
+            // TODO: add file number when ask for new annotation and update it in current_file variable as parseInt(current_file)
+            // TODO: then load it and have fun!
             html.push('<span class="cell">' +
               '<input class="_via_user_input_variable" ' +
               value_html + ' ' +
@@ -7353,7 +7308,7 @@ POSSIBILITY OF SUCH DAMAGE.
               'placeholder="' + placeholder + '" ' +
               'value ="' + tempLinks + '" ' +
               'type="text" id="' + key + '"></span>');
-              // user_input_parse_and_invoke_handler();
+            // user_input_parse_and_invoke_handler();
 
             break;
           case 'textarea':
@@ -7393,7 +7348,7 @@ POSSIBILITY OF SUCH DAMAGE.
       p.appendChild(c);
       // user_input_parse_and_invoke_handler();
     }
-// user_input_parse_and_invoke_handler();
+    // user_input_parse_and_invoke_handler();
     function user_input_default_cancel_handler() {
       hide_user_input_panel();
       _via_user_input_data = {};
@@ -8390,8 +8345,8 @@ POSSIBILITY OF SUCH DAMAGE.
       clear_display_area();
       _via_clear_reg_canvas();
       // _via_project["aid"]={{aid}}
-      _via_project.file=parseInt(current_file);
-      socket1.emit("mydata",JSON.stringify(_via_project));
+      _via_project.file = parseInt(current_file);
+      socket1.emit("mydata", JSON.stringify(_via_project));
       var data_blob = new Blob([JSON.stringify(_via_project)], {
         type: 'text/json;charset=utf-8'
       });
@@ -8415,12 +8370,13 @@ POSSIBILITY OF SUCH DAMAGE.
     //   var selected_file = event.target.files[0];
     //   load_text_file(selected_file, project_open_parse_json_file);
     // }
-var current_file;
+    var current_file;
+
     function project_open_parse_json_file(json) {
       // TODO: ""(5)
       var d = JSON.parse(json);
-      current_file=d.file;
-      console.log("current file:"+current_file);
+      current_file = d.file;
+      console.log("current file:" + current_file);
       if (d['_via_settings'] && d['_via_img_metadata'] && d['_via_attributes']) {
         // import settings
         project_import_settings(d['_via_settings']);
@@ -11112,9 +11068,9 @@ var current_file;
     <script src="./tests/_via_test.js"></script>
     <script src="./tests/_via_test_region.js"></script>
     -->
-    <p class="aidclass">Annotator Id (AID) : {{aid}}</p>
-    <p id="result">UID : </p>
-    <p id="imagelinks">Current Image Annotation :</p>
+  <p class="aidclass">Annotator Id (AID) : {{aid}}</p>
+  <p id="result">UID : </p>
+  <p id="imagelinks">Current Image Annotation :</p>
 </body>
 
 </html>

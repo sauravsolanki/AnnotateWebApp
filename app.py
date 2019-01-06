@@ -16,6 +16,7 @@ mongo = PyMongo(app)
 n=14
 @socketio.on('myconnection')
 def test_connect(msg):
+    # TODO: push all in_process uid to uid table
     print(msg)
 
 @socketio.on('fetchUID')
@@ -95,7 +96,6 @@ def mydata(data):
     jsonfile=json.loads(data)
     # print(jsonfile)
     n=int(jsonfile['file'])
-    print("current file annotated "+str(n)+"by User Id :"+ str(current_user.id) )
     # due to presence of object id ,update operation not working
     # TODO(4):
     mongo.db.docs.delete_one({"file":n})
@@ -105,7 +105,10 @@ def mydata(data):
     status="annotated"
     temp = Info.query.filter_by(uid=str(n),aid=str(current_user.id)).first()
     temp.status=status
+    temp.dateOfAnnotation=str(temp.dateOfAnnotation)+"---"+str(time.ctime());
     db.session.commit()
+    print("saved annotated file: "+str(n)+" by User AId :"+ str(current_user.id) )
+
     # first_puppy = Puppy.query.filter_by(age=107,name='Sammy').first()
     # first_puppy.age = 180
     # db.session.commit()
@@ -124,6 +127,33 @@ def update(json_data):
     mongo.db.docs.update_one({"file":n},{"$set": d}, upsert=True)
     # return redirect(url_for("annotationtool"))
 
+# fetchURL and send it back
+@socketio.on('fetchURL')
+def fetchURL():
+    time.sleep(1)
+    # TODO: n = no of annotated file in the database
+    n=int(mongo.db.docs.count())
+    print(n)
+    n=n+1
+    imagelink=ImageLinks.query.get(n)
+    # tempLinks = the nth url from ImageLinks TABLE
+    tempLinks=str(imagelink.links)
+    # push n value to puid and update the info table
+    ############# uncomment below #############
+    # puid=PUIDS(n)
+    # db.session.add(puid)
+    # db.session.commit()
+
+    # update the info table
+    ############# uncomment below ############
+    # status="in_process"
+    # dateOfAnnotation=time.ctime()
+    # info=Info(str(current_user.id),n,status,dateOfAnnotation,tempLinks)
+    # db.session.add(info)
+    # db.session.commit()
+
+    # emit the corresponding links
+    emit('fetchURLResponse',str(tempLinks))
 
 @socketio.on('pushebackUID')
 def pushebackUID(uid):
