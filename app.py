@@ -27,7 +27,6 @@ def test_connect(msg):
 
 @socketio.on('fetchUID')
 def fetchUID(aid):
-    global n
     #  added to request queue
     caid=RequestUIDS(ruid=aid)
     db.session.add(caid)
@@ -53,7 +52,8 @@ def fetchUID(aid):
 
         ############### uncomment below #########
         # TODO: add a session variable here with a key as "uid_by_aid" and value ="uid-aid"
-        # session['key'] = 'value'
+        # if not session['uid_by_aid']:
+            # session['uid_by_aid'] = str(uids[0].uid) +'-'+ str(current_user.id)
         #############################################
 
         #to push uid to processed uid
@@ -68,7 +68,7 @@ def fetchUID(aid):
 
         #  add the info into table
         dateOfAnnotation=time.ctime()
-        # TODO:Info database, mark status Column as "in_process"
+        # Info database, mark status Column as "in_process"
         status="in_process"
         info=Info(str(current_user.id),str(uids[0].uid),status,dateOfAnnotation,str(imagelink.links))
         db.session.add(info)
@@ -97,17 +97,15 @@ def fetchUID(aid):
 
 @socketio.on('mydata')
 def mydata(data):
-
     print(type(data)) # <class 'str'>
-    # print('received data: ' + (data))
-    # global n
+    print('received data: ' + (data))
     jsonfile=json.loads(data)
     # print(jsonfile)
     n=int(jsonfile['file'])
     # due to presence of object id ,update operation not working
-    # TODO(4):
     mongo.db.docs.delete_one({"file":n})
     mongo.db.docs.insert(jsonfile,check_keys=False)
+    # mongo.db.docs.update_one({"file":n},{"$set": jsonfile }, upsert=True)
     # TODO:In Info database, update the corresponding uid column status as "annotated"
     # it has data.file(uid)(here it is n variable ) and here we have str(current_user.id) as aid
     status="annotated"
@@ -124,16 +122,15 @@ def mydata(data):
     # TODO: remove a session variable here of a key as "uid_by_aid" and value ="uid-aid"
     # session.get('key', 'not set')
     # session.pop('key', None)
-    #############
+    # pop the session when they click on save
+    # session.pop('uid_by_aid','not_set')
+    #######################################
 
-########### uncomment below #############
-# @socketio.on('saveTheAnnotate')
-# def saveTheAnnotate(json_data):
-#     pass
-########### uncomment below #############
 i=0
 @socketio.on('autoupdate')
 def autoupdate(jsondata):
+    # if user is in session and jsondata is not empty update the corresponding file value
+    # then only update the json file
     print(type(jsondata)) # <class 'str'>
     # print(type(json.dumps(jsondata))) # <class 'str'>
     # print(type(json.loads(json.dumps(jsondata)))) # <class 'str'>
@@ -164,23 +161,31 @@ def fetchURL():
     n=n+1
     imagelink=ImageLinks.query.get(n)
     # tempLinks = the nth url from ImageLinks TABLE
-    tempLinks=str(imagelink.links)
+    imagelink=str(imagelink.links)
+    jsonfile={}
+    jsonfile['file']=n
+    jsonfile['imagelinks']=imagelink
+    data=json.dumps(jsonfile)
+    print(type(data))
     # push n value to puid and update the info table
     ############# uncomment below #############
-    # puid=PUIDS(n)
-    # db.session.add(puid)
-    # db.session.commit()
+    puid=PUIDS(n)
+    db.session.add(puid)
+    db.session.commit()
 
     # update the info table
     ############# uncomment below ############
-    # status="in_process"
-    # dateOfAnnotation=time.ctime()
-    # info=Info(str(current_user.id),n,status,dateOfAnnotation,tempLinks)
-    # db.session.add(info)
-    # db.session.commit()
+    status="in_process"
+    dateOfAnnotation=time.ctime()
+    info=Info(str(current_user.id),n,status,dateOfAnnotation,imagelink)
+    db.session.add(info)
+    db.session.commit()
 
+    # set the session
+    # if (not session['uid_by_aid']) and tempLinks:
+        # session['uid_by_aid'] = str(n) +'-'+ str(current_user.id)
     # emit the corresponding links
-    emit('fetchURLResponse',str(tempLinks))
+    emit('fetchURLResponse',str(data))
 
 @socketio.on('pushebackUID')
 def pushebackUID(uid):
@@ -220,6 +225,8 @@ def annotationtool():
 @login_required
 def logout():
     logout_user()
+    # unset the session
+    # session.pop('uid_by_aid','not_set')
     flash('You logged out!')
     return redirect(url_for('home'))
 

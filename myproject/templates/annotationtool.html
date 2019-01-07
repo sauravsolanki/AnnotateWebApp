@@ -1298,9 +1298,16 @@
               socket.emit('fetchURL');
             });
 
-            socket.on('fetchURLResponse', function(url) {
+            socket.on('fetchURLResponse', function(data) {
+              data=JSON.parse(data)
+              var file=data.file;
+              current_file=file;
+              console.log(file);
+              console.log(current_file);
+              var url=data.imagelinks;
               if (url) {
-                document.getElementById('newfile').innerHTML = "New File";
+                  project_file_add_url_with_input(url);
+                  document.getElementById('newfile').innerHTML = "New File";
               }
               console.log(url);
             });
@@ -1327,6 +1334,9 @@
         <li>
           <a id="exit" href="{{url_for('home')}}"> Exit</a>
         </li>
+        <!-- <li>
+        <button onclick = project_file_add_url_with_input()> GET FILE </button>
+        </li> -->
         <!--  <li>View
             <ul>
               <li onclick="image_grid_toggle()" title="Toggle between single image view and image grid view">Toggle image grid view</li>
@@ -8321,25 +8331,24 @@ POSSIBILITY OF SUCH DAMAGE.
 
       invoke_with_user_inputs(project_save_confirmed, input, config);
     }
-
+var _via_project={};
     function project_save_confirmed(input) {
       if (input.project_name.value !== _via_settings.project.name) {
         project_set_name(input.project_name.value);
       }
 
       // via project
-      var _via_project = {
+      _via_project = {
         '_via_settings': _via_settings,
         '_via_img_metadata': _via_img_metadata,
         '_via_attributes': _via_attributes
       };
 
       // var _via_project=JSON.parse(json);
-
-
+      // _via_project._via_settings.project.name=parseInt(current_file);
+      // input.project_name.value=parseInt(current_file);
       var filename = input.project_name.value + '.json';
       // console.log(JSON.stringify(_via_project))
-
 
       var socket1 = io.connect('http://127.0.0.1:5000');
       clear_display_area();
@@ -8357,18 +8366,30 @@ POSSIBILITY OF SUCH DAMAGE.
 
       user_input_default_cancel_handler();
     }
-// ############################
+// ############################ Look before you code ########################
+// When user close the window stop autoupdate
+// The beforeunload event fires whenever the user leaves your page for any reason.
+// var inFormOrLink;
+// $('a').on('click', function() { inFormOrLink = true; });
+// $('form').on('submit', function() { inFormOrLink = true; });
+// $(window).on("beforeunload", function() {
+//     return inFormOrLink ? "Do you really want to close?" : null;
+// })
+
 var socket3 = io.connect('http://127.0.0.1:5000');
 // for every 2 sec it will send to app.py a signal to update
 function autoupdate(tempjson){
-    // var tempjson=JSON.parse('{ "name":"John", "age":30, "city":"New York"}');
+  // condition: if user is in session & user is in annotate session & _via_project is not empty the send
     socket3.emit("autoupdate",JSON.stringify(tempjson));
-    setTimeout(autoupdate(tempjson), 5000);
+    // setTimeout(autoupdate(tempjson), 5000);
+    // else no updation since no file is in annotation tool and no session started
+    // condition 2: if user is in session but no project loaded ,provide him tha last annoated file
+    // have a autoupdate ready after some time
 }
-// ############## change here #############
+// ############## change here #####################################
 // TODO: if in session modify it
 var tempjson=JSON.parse('{ "name":"John", "age":30, "city":"New York"}');
-autoupdate(tempjson);
+// autoupdate(tempjson);
 // ##########################################
 
     // function project_open_select_project_file() {
@@ -8692,25 +8713,20 @@ autoupdate(tempjson);
       }
     }
 
-    function project_file_add_url_with_input() {
+    function project_file_add_url_with_input(url) {
       var config = {
-        'title': 'Add File using URL'
+        'title': 'Thank you for contribution.'
       };
       var input = {
         'url': {
-          type: 'text',
-          name: 'add one URL',
+          // type: 'text',
+          type: 'hidden',
+          name: 'New file will be annotated.We appreciate your dedication.Thank you.',
+          // value: 'http://bhoomi.csa.iisc.ernet.in:8080/ihg/manuscript_editor/images/ANINGYA%20VYAKHYA/KUML/2346/45.jpg',
+          value: String(url),
           placeholder: 'http://www.robots.ox.ac.uk/~vgg/software/via/images/swan.jpg',
           disabled: false,
           size: 50
-        },
-        'url_list': {
-          type: 'textarea',
-          name: 'or, add multiple URL (one url per line)',
-          placeholder: 'http://www.example.com/image1.jpg\nhttp://www.example.com/image2.jpg\nhttp://www.example.com/image3.png',
-          disabled: false,
-          rows: 5,
-          cols: 80
         }
       };
 
