@@ -1,5 +1,5 @@
 from myproject import app,db,socketio
-from flask import render_template, redirect, request, url_for, flash,abort,jsonify
+from flask import render_template, redirect, request, url_for, flash,abort,jsonify,session
 from flask_login import login_user,login_required,logout_user,current_user
 from myproject.models import User,UIDS,RequestUIDS,PUIDS,Info,ImageLinks
 from myproject.forms import LoginForm, RegistrationForm
@@ -13,7 +13,13 @@ from bson.json_util import loads
 import json
 app.config["MONGO_URI"] = "mongodb://localhost:27017/annotate"
 mongo = PyMongo(app)
-n=14
+
+######### uncomment below ##########
+# SESSION_TYPE = 'redis'
+# app.config.from_object(__name__)
+# Session(app)
+####################################
+
 @socketio.on('myconnection')
 def test_connect(msg):
     # TODO: push all in_process uid to uid table
@@ -45,17 +51,22 @@ def fetchUID(aid):
         # db.session.commit()
         # till here
 
-#  to push uid to processed uid
+        ############### uncomment below #########
+        # TODO: add a session variable here with a key as "uid_by_aid" and value ="uid-aid"
+        # session['key'] = 'value'
+        #############################################
+
+        #to push uid to processed uid
         puid=PUIDS(uids[0].uid)
         db.session.add(puid)
         db.session.commit()
 
 
-#   send the image links also
+        #   send the image links also
         imagelink=ImageLinks.query.filter_by(id=int(uids[0].uid)).first()
         print('Allocated: '+ str(imagelink.links))
 
-#  add the info into table
+        #  add the info into table
         dateOfAnnotation=time.ctime()
         # TODO:Info database, mark status Column as "in_process"
         status="in_process"
@@ -83,9 +94,6 @@ def fetchUID(aid):
     else:
         emit('fetchUIDAnswer',"None Allocated! Please Wait")
 
-# @socketio.on('json')
-# def handle_json(json):
-#     print('received json: ' + str(json))
 
 @socketio.on('mydata')
 def mydata(data):
@@ -108,14 +116,32 @@ def mydata(data):
     temp.dateOfAnnotation=str(temp.dateOfAnnotation)+"---"+str(time.ctime());
     db.session.commit()
     print("saved annotated file: "+str(n)+" by User AId :"+ str(current_user.id) )
-
-    # first_puppy = Puppy.query.filter_by(age=107,name='Sammy').first()
-    # first_puppy.age = 180
-    # db.session.commit()
-
     # d = json.load(data)
     #mongo.db.docs.update_one({"file":3},{"$set": d}, upsert=True)
     # mongo.db.docs.update_one({"file":11},{"$set": data }, upsert=True)
+
+    ########### uncomment below #############
+    # TODO: remove a session variable here of a key as "uid_by_aid" and value ="uid-aid"
+    # session.get('key', 'not set')
+    # session.pop('key', None)
+    #############
+
+########### uncomment below #############
+# @socketio.on('saveTheAnnotate')
+# def saveTheAnnotate(json_data):
+#     pass
+########### uncomment below #############
+i=0
+@socketio.on('autoupdate')
+def autoupdate(jsondata):
+    print(type(jsondata)) # <class 'str'>
+    # print(type(json.dumps(jsondata))) # <class 'str'>
+    # print(type(json.loads(json.dumps(jsondata)))) # <class 'str'>
+    global i
+    i=i+1
+    print(str(i)+'received autoupdate data: ' + str(jsondata))
+    # jsonfile=json.loads(jsondata)
+    # save to database
 
 @socketio.on('update')
 def update(json_data):
@@ -130,6 +156,7 @@ def update(json_data):
 # fetchURL and send it back
 @socketio.on('fetchURL')
 def fetchURL():
+    # set the session variable here
     time.sleep(1)
     # TODO: n = no of annotated file in the database
     n=int(mongo.db.docs.count())
@@ -182,10 +209,6 @@ def pushebackUID(uid):
 def home():
     return render_template('home.html')
 
-# @app.route('/annotationtool')
-# @login_required
-# def annotation():
-#     return render_template('AnnotationTool.html')
 
 @app.route('/annotation')
 @login_required

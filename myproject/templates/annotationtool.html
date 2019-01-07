@@ -8345,6 +8345,7 @@ POSSIBILITY OF SUCH DAMAGE.
       clear_display_area();
       _via_clear_reg_canvas();
       // _via_project["aid"]={{aid}}
+      // file name added
       _via_project.file = parseInt(current_file);
       socket1.emit("mydata", JSON.stringify(_via_project));
       var data_blob = new Blob([JSON.stringify(_via_project)], {
@@ -8356,6 +8357,19 @@ POSSIBILITY OF SUCH DAMAGE.
 
       user_input_default_cancel_handler();
     }
+// ############################
+var socket3 = io.connect('http://127.0.0.1:5000');
+// for every 2 sec it will send to app.py a signal to update
+function autoupdate(tempjson){
+    // var tempjson=JSON.parse('{ "name":"John", "age":30, "city":"New York"}');
+    socket3.emit("autoupdate",JSON.stringify(tempjson));
+    setTimeout(autoupdate(tempjson), 5000);
+}
+// ############## change here #############
+// TODO: if in session modify it
+var tempjson=JSON.parse('{ "name":"John", "age":30, "city":"New York"}');
+autoupdate(tempjson);
+// ##########################################
 
     // function project_open_select_project_file() {
     //   if (invisible_file_input) {
