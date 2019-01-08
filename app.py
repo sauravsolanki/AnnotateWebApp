@@ -17,7 +17,7 @@ mongo = PyMongo(app)
 ######### uncomment below ##########
 # SESSION_TYPE = 'redis'
 # app.config.from_object(__name__)
-# Session(app)
+# session(app)
 ####################################
 
 @socketio.on('myconnection')
@@ -53,7 +53,7 @@ def fetchUID(aid):
         ############### uncomment below #########
         # TODO: add a session variable here with a key as "uid_by_aid" and value ="uid-aid"
         # if not session['uid_by_aid']:
-            # session['uid_by_aid'] = str(uids[0].uid) +'-'+ str(current_user.id)
+            # session['uid_by_aid'] = str(uids[0].uid) +'_'+ str(current_user.id)
         #############################################
 
         #to push uid to processed uid
@@ -126,7 +126,6 @@ def mydata(data):
     # session.pop('uid_by_aid','not_set')
     #######################################
 
-i=0
 @socketio.on('autoupdate')
 def autoupdate(jsondata):
     # if user is in session and jsondata is not empty update the corresponding file value
@@ -134,11 +133,11 @@ def autoupdate(jsondata):
     print(type(jsondata)) # <class 'str'>
     # print(type(json.dumps(jsondata))) # <class 'str'>
     # print(type(json.loads(json.dumps(jsondata)))) # <class 'str'>
-    global i
-    i=i+1
-    print(str(i)+'received autoupdate data: ' + str(jsondata))
+    print('updating.....' + str(jsondata))
+    # print('updating.....')
     # jsonfile=json.loads(jsondata)
     # save to database
+    # mongo.db.update
 
 @socketio.on('update')
 def update(json_data):
@@ -182,9 +181,11 @@ def fetchURL():
     db.session.commit()
 
     # set the session
-    # if (not session['uid_by_aid']) and tempLinks:
-        # session['uid_by_aid'] = str(n) +'-'+ str(current_user.id)
-    # emit the corresponding links
+    # if 'uid_by_aid' in session:
+    #     pass
+    # else:
+    #     session['uid_by_aid'] = str(n) +'_'+ str(current_user.id)
+    # # emit the corresponding links
     emit('fetchURLResponse',str(data))
 
 @socketio.on('pushebackUID')

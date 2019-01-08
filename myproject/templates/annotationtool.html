@@ -1260,10 +1260,20 @@
         <!-- Added-->
 
         <script type="text/javascript">
-          var curr_uid = 0;
-          $(document).ready(function() {
-            var socket = io.connect('http://127.0.0.1:5000');
 
+          function autoupdatetest() {
+            var t=autoSaveFileForUpdate();
+            t=JSON.stringify(t);
+            socket.emit("autoupdate",t);
+            console.log("updating..."+t);
+            setTimeout(autoupdatetest, 5000); // user status at every 2 seconds
+          }
+
+          var curr_uid = 0;
+          var socket;
+          $(document).ready(function() {
+            socket = io.connect('http://127.0.0.1:5000');
+            autoupdatetest();
             socket.on('connect', function() {
               socket.emit('myconnection', 'AID: ' + {{aid}} + 'is connected');
             });
@@ -1307,6 +1317,9 @@
               var url=data.imagelinks;
               if (url) {
                   project_file_add_url_with_input(url);
+                  // dnewadded
+                  // project_save_with_confirm();
+                  // autoupdate();
                   document.getElementById('newfile').innerHTML = "New File";
               }
               console.log(url);
@@ -1321,6 +1334,7 @@
               // }
             });
           });
+
         </script>
 
         <li>
@@ -8332,6 +8346,15 @@ POSSIBILITY OF SUCH DAMAGE.
       invoke_with_user_inputs(project_save_confirmed, input, config);
     }
 var _via_project={};
+function autoSaveFileForUpdate(){
+  var temp = {
+    '_via_settings': _via_settings,
+    '_via_img_metadata': _via_img_metadata,
+    '_via_attributes': _via_attributes
+  };
+  temp.file = parseInt(current_file);
+  return temp;
+}
     function project_save_confirmed(input) {
       if (input.project_name.value !== _via_settings.project.name) {
         project_set_name(input.project_name.value);
@@ -8367,6 +8390,7 @@ var _via_project={};
       user_input_default_cancel_handler();
     }
 // ############################ Look before you code ########################
+//         socket3.emit("autoupdate",JSON.stringify(t));
 // When user close the window stop autoupdate
 // The beforeunload event fires whenever the user leaves your page for any reason.
 // var inFormOrLink;
@@ -8375,21 +8399,11 @@ var _via_project={};
 // $(window).on("beforeunload", function() {
 //     return inFormOrLink ? "Do you really want to close?" : null;
 // })
-
-var socket3 = io.connect('http://127.0.0.1:5000');
-// for every 2 sec it will send to app.py a signal to update
-function autoupdate(tempjson){
-  // condition: if user is in session & user is in annotate session & _via_project is not empty the send
-    socket3.emit("autoupdate",JSON.stringify(tempjson));
-    // setTimeout(autoupdate(tempjson), 5000);
-    // else no updation since no file is in annotation tool and no session started
-    // condition 2: if user is in session but no project loaded ,provide him tha last annoated file
-    // have a autoupdate ready after some time
-}
+// stopautoupdate();
 // ############## change here #####################################
 // TODO: if in session modify it
-var tempjson=JSON.parse('{ "name":"John", "age":30, "city":"New York"}');
-// autoupdate(tempjson);
+// var tempjson=_via_project;
+// autoupdate();
 // ##########################################
 
     // function project_open_select_project_file() {
