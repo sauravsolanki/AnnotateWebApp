@@ -16,7 +16,68 @@
   <title>Deep Annotator</title>
   <meta name="author" content="Abhishek Trivedi">
   <meta name="description" content="VIA is a standalone image annotator application packaged as a single HTML file (< 400 KB) that runs on most modern web browsers.">
+  <style media="screen">
+      .onoffswitch {
+    position: relative; width: 130px;
+    -webkit-user-select:none; -moz-user-select:none; -ms-user-select: none;
+}
+.onoffswitch-checkbox {
+    display: none;
+}
+.onoffswitch-label {
+    display: block; overflow: hidden; cursor: pointer;
+    border: 2px solid #999999; border-radius: 20px;
+}
+.onoffswitch-inner {
+    display: block; width: 200%; margin-left: -100%;
+    transition: margin 0.3s ease-in 0s;
+}
+.onoffswitch-inner:before, .onoffswitch-inner:after {
+    display: block; float: left; width: 50%; height: 30px; padding: 0; line-height: 30px;
+    font-size: 14px; color: white; font-family: Trebuchet, Arial, sans-serif; font-weight: bold;
+    box-sizing: border-box;
+}
+.onoffswitch-inner:before {
+    content: "Correcting...";
+    padding-left: 10px;
+    background-color: #34A7C1; color: #FFFFFF;
+}
+.onoffswitch-inner:after {
+    content: "New Image";
+    padding-right: 10px;
+    background-color: #EEEEEE; color: #999999;
+    text-align: right;
+}
+.onoffswitch-switch {
+    display: block; width: 20px; margin: 6px;
+    background: #FFFFFF;
+    position: absolute; top: 0; bottom: 0;
+    right: 90px;
+    border: 2px solid #999999; border-radius: 20px;
+    transition: all 0.3s ease-in 0s;
+}
+.onoffswitch-checkbox:checked + .onoffswitch-label .onoffswitch-inner {
+    margin-left: 0;
+}
+.onoffswitch-checkbox:checked + .onoffswitch-label .onoffswitch-switch {
+    right: 0px;
+}
+    </style>
 
+    <script type="text/javascript">
+      var result=document.getElementById('result');
+      function myfun(){
+        var inputType=document.getElementById('myonoffswitch');
+        if (inputType.checked) {
+          // document.getElementById('start').innerHTML =
+          document.getElementById('newfile').id="start";
+          document.getElementById('result').innerHTML="Correcting...";
+        }else{
+            document.getElementById('start').id="newfile";
+            document.getElementById('result').innerHTML="Annotating new file....";
+        }
+      }
+    </script>
 
   <script type="text/javascript">
     //<!--AUTO_INSERT_GOOGLE_ANALYTICS_JS_HERE-->
@@ -1226,11 +1287,11 @@
     <!-- menu bar -->
     <div class="menubar">
       <ul>
-        <li onclick="show_home_panel()" style="cursor:pointer;"> <a href="{{ url_for('home')}}"> Home </a></li>
-        <li>Project
-          <ul>
+        <!-- <li onclick="show_home_panel()" style="cursor:pointer;"> <a href="{{ url_for('home')}}"> Home </a></li> -->
+        <!-- <li>Project
+          <ul> -->
             <!-- project_open_parse_json_file() -->
-            <li onclick="project_open_parse_json_file()" title="Load a VIA project (from a JSON file)">Load</li>
+            <!-- <li onclick="project_open_parse_json_file()" title="Load a VIA project (from a JSON file)">Load</li>
             <li onclick="project_save_with_confirm()" title="Save this VIA project (as a JSON file)">Save</li>
             <li onclick="settings_panel_toggle()" title="Show/edit project settings">Settings</li>
             <li class="submenu_divider"></li>
@@ -1243,7 +1304,7 @@
             <li onclick="sel_local_data_file('attributes')" title="Import region and file attributes from a JSON file">Import region/file attributes</li>
             <li onclick="project_save_attributes()" title="Export region and file attributes to a JSON file">Export region/file attributes</li>
           </ul>
-        </li>
+        </li> -->
 
         <li>Annotation
           <ul>
@@ -1261,16 +1322,30 @@
 
         <script type="text/javascript">
 
+        var curr_uid = 0;
+        var socket;
           function autoupdatetest() {
+            // var t=autoSaveFileForUpdate();
+            // t=JSON.stringify(t);
+            // socket.emit("autoupdate",t);
+            // console.log("updating..."+t);
+
+            // user={{ session.get('uid_by_aid','Not set') }};
+            // console.log(user);
+            //
             var t=autoSaveFileForUpdate();
-            t=JSON.stringify(t);
-            socket.emit("autoupdate",t);
-            console.log("updating..."+t);
-            setTimeout(autoupdatetest, 5000); // user status at every 2 seconds
+            if(t.file){
+              t=JSON.stringify(t);
+              socket.emit("autoupdate",t);
+              console.log("updating..."+t);
+            }
+            else {
+              console.log("not updating.......");
+            }
+
+            setTimeout(autoupdatetest, 10000);// user status at every 5 seconds
           }
 
-          var curr_uid = 0;
-          var socket;
           $(document).ready(function() {
             socket = io.connect('http://127.0.0.1:5000');
             autoupdatetest();
@@ -1280,7 +1355,7 @@
 
             socket.on('fetchUIDAnswer', function(json) {
               if (json) {
-                document.getElementById('start').innerHTML = "Annotate Another";
+                document.getElementById('start').innerHTML = "Request";
                 document.getElementById('start').disabled = true;
               }
               // $("#result").html(json);
@@ -1320,7 +1395,7 @@
                   // dnewadded
                   // project_save_with_confirm();
                   // autoupdate();
-                  document.getElementById('newfile').innerHTML = "New File";
+                  document.getElementById('newfile').innerHTML = "Request";
               }
               console.log(url);
             });
@@ -1337,17 +1412,41 @@
 
         </script>
 
-        <li>
-          <a id="newfile">New File</a>
-        </li>
+        <!-- request new file   -->
+        <!-- <li>
+          <a id="newfile">Request New</a>
+        </li> -->
+
+        <!-- request annonated image -->
+        <!-- <li>
+          <a id="start">Request Annotated</a>
+        </li> -->
 
         <li>
-          <a id="start"> Start Annotating</a>
+          <a id="newfile">Request</a>
         </li>
 
-        <li>
-          <a id="exit" href="{{url_for('home')}}"> Exit</a>
+        <!--Skip  -->
+        <!-- <li> <a id="skipt">Skip</a> </li> -->
+
+        <!-- Done  -->
+        <li onclick="project_save_with_confirm()" title="Save this VIA project (as a JSON file)"> <a id="savet">Save</a> </li>
+
+        <!-- Correct Image  -->
+
+        <li><div class="onoffswitch" onclick="myfun()">
+    <input type="checkbox" name="onoffswitch" class="onoffswitch-checkbox" id="myonoffswitch">
+    <label class="onoffswitch-label" for="myonoffswitch">
+        <span class="onoffswitch-inner"></span>
+        <span class="onoffswitch-switch"></span>
+    </label>
+</div><p id="result"></p>
         </li>
+        <!--Exit  -->
+        <!-- <li>  <a id="exitt"> Exit</a> </li> -->
+
+        <!-- to get the annonated image for correction   -->
+
         <!-- <li>
         <button onclick = project_file_add_url_with_input()> GET FILE </button>
         </li> -->
@@ -11095,6 +11194,29 @@ function autoSaveFileForUpdate(){
       // For Safari
       return 'Did you save your data?';
     };
+
+    // var request_newfile=document.getElementById('newfile');
+    // var request_annotated=document.getElementById('start');
+    // var correctionMode=document.getElementById('correctAnnotate');
+    // var newMode=document.getElementById('newMode');
+    //
+    // request_newfile.style.display='none';
+    // request_annotated.style.display='none';
+    //
+    // function correctioMode(){
+    //   // hide the new tab
+    //   request_newfile.style.display='none';
+    //   request_annotated.style.display='block'
+    //   correctionMode.style.display='none'
+    // }
+    //
+    // function newMode(){
+    //   request_newfile.style.display='block';
+    //   request_annotated.style.display='none'
+    //   correctionMode.style.display='block'
+    // }
+
+
   </script>
   <script type="text/javascript">
     //<!--AUTO_INSERT_VIA_TEST_JS_HERE-->

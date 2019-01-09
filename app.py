@@ -98,14 +98,14 @@ def fetchUID(aid):
 @socketio.on('mydata')
 def mydata(data):
     print(type(data)) # <class 'str'>
-    print('received data: ' + (data))
+    # print('received data: ' + (data))
     jsonfile=json.loads(data)
     # print(jsonfile)
     n=int(jsonfile['file'])
     # due to presence of object id ,update operation not working
     mongo.db.docs.delete_one({"file":n})
     mongo.db.docs.insert(jsonfile,check_keys=False)
-    # mongo.db.docs.update_one({"file":n},{"$set": jsonfile }, upsert=True)
+    # mongo.db.docs.update_one({"file":n},{"$set": jsonfile}, upsert=True)
     # TODO:In Info database, update the corresponding uid column status as "annotated"
     # it has data.file(uid)(here it is n variable ) and here we have str(current_user.id) as aid
     status="annotated"
@@ -123,7 +123,7 @@ def mydata(data):
     # session.get('key', 'not set')
     # session.pop('key', None)
     # pop the session when they click on save
-    # session.pop('uid_by_aid','not_set')
+    session.pop('uid_by_aid','not_set')
     #######################################
 
 @socketio.on('autoupdate')
@@ -133,11 +133,17 @@ def autoupdate(jsondata):
     print(type(jsondata)) # <class 'str'>
     # print(type(json.dumps(jsondata))) # <class 'str'>
     # print(type(json.loads(json.dumps(jsondata)))) # <class 'str'>
-    print('updating.....' + str(jsondata))
+    print('updating.....')
     # print('updating.....')
     # jsonfile=json.loads(jsondata)
     # save to database
-    # mongo.db.update
+    jsonfile=json.loads(jsondata)
+    # print(jsonfile)
+    n=int(jsonfile['file'])
+    # mongo.db.docs.delete_one({"file":n})
+    # mongo.db.docs.insert(jsonfile,check_keys=False)
+    # or
+    mongo.db.docs.update_one({"file":n},{"$set": jsonfile}, upsert=True)
 
 @socketio.on('update')
 def update(json_data):
@@ -181,10 +187,10 @@ def fetchURL():
     db.session.commit()
 
     # set the session
-    # if 'uid_by_aid' in session:
-    #     pass
-    # else:
-    #     session['uid_by_aid'] = str(n) +'_'+ str(current_user.id)
+    if 'uid_by_aid' in session:
+        session.pop('uid_by_aid','not_set')
+    else:
+        session['uid_by_aid'] = str(n) +'_'+ str(current_user.id)
     # # emit the corresponding links
     emit('fetchURLResponse',str(data))
 
