@@ -7,23 +7,31 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from random import randint
 import time
 from flask_socketio import  send,emit
-from flask_pymongo import PyMongo,MongoClient
+# from flask_pymongo import PyMongo,MongoClient
 from flask import Response
 from bson.json_util import loads
 import json
-app.config["MONGO_URI"] = "mongodb://localhost:27017/annotate"
-mongo = PyMongo(app)
+import os, os.path
+# app.config["MONGO_URI"] = "mongodb://localhost:27017/annotate"
+# mongo = PyMongo(app)
 
 ######### uncomment below ##########
 # SESSION_TYPE = 'redis'
 # app.config.from_object(__name__)
 # session(app)
 ####################################
+pathtojson='/home/saurav/Music/json/'
 
 @socketio.on('myconnection')
 def test_connect(msg):
     # TODO: push all in_process uid to uid table
     print(msg)
+
+# r = json.dumps(jsonfile)
+# print(type(r)) #Output str
+# loaded_r = json.loads(r)
+# print(type(loaded_r)) #Output dict
+# t=json.load(json.dumps(jsonfile))
 
 @socketio.on('fetchUID')
 def fetchUID(aid):
@@ -61,12 +69,9 @@ def fetchUID(aid):
         db.session.add(puid)
         db.session.commit()
 
-
-        #   send the image links also
-        imagelink=ImageLinks.query.filter_by(id=int(uids[0].uid)).first()
-        print('Allocated: '+ str(imagelink.links))
-
         #  add the info into table
+        #  get the image links also
+        imagelink=ImageLinks.query.filter_by(id=int(uids[0].uid)).first()
         dateOfAnnotation=time.ctime()
         # Info database, mark status Column as "in_process"
         status="in_process"
@@ -74,57 +79,45 @@ def fetchUID(aid):
         db.session.add(info)
         db.session.commit()
 
-        # emit('fetchUIDAnswer',uids[0].uid)
-        # TODO(1): send json file from the database
         n=int(uids[0].uid)
-        jsonfile = mongo.db.docs.find_one_or_404({"file": n})
-        # print(jsonfile)
-        jsonfile.pop('_id')
-        # jsonfile.pop('file')
-        # tochange for mistake
-        jsonfile=json.dumps(jsonfile)
+        # n=8
+        filepath=pathtojson+str(n)+'.json'
+        print(filepath)
+        file=open(filepath,'r')
+        data=str(file.read())
+        file.close()
 
-        # r = json.dumps(jsonfile)
-        # print(type(r)) #Output str
-        # loaded_r = json.loads(r)
-        # print(type(loaded_r)) #Output dict
-        # t=json.load(json.dumps(jsonfile))
-
-        emit('fetchUIDAnswer',str(jsonfile))
+        emit('fetchUIDAnswer',str(data))
     else:
         emit('fetchUIDAnswer',"None Allocated! Please Wait")
 
 
 @socketio.on('mydata')
 def mydata(data):
+
     print(type(data)) # <class 'str'>
     # print('received data: ' + (data))
     jsonfile=json.loads(data)
     # print(jsonfile)
     n=int(jsonfile['file'])
     # due to presence of object id ,update operation not working
-    mongo.db.docs.delete_one({"file":n})
-    mongo.db.docs.insert(jsonfile,check_keys=False)
-    # mongo.db.docs.update_one({"file":n},{"$set": jsonfile}, upsert=True)
-    # TODO:In Info database, update the corresponding uid column status as "annotated"
-    # it has data.file(uid)(here it is n variable ) and here we have str(current_user.id) as aid
+    # put the file in processed .
+    puid=PUIDS(n)
+    db.session.add(puid)
+    db.session.commit()
+
+    fullpath=pathtojson+str(n)+'.json'
+    file=open(fullpath,'w')
+    file.write(data)
+    file.close()
+
     status="annotated"
     temp = Info.query.filter_by(uid=str(n),aid=str(current_user.id)).first()
     temp.status=status
     temp.dateOfAnnotation=str(temp.dateOfAnnotation)+"---"+str(time.ctime());
     db.session.commit()
     print("saved annotated file: "+str(n)+" by User AId :"+ str(current_user.id) )
-    # d = json.load(data)
-    #mongo.db.docs.update_one({"file":3},{"$set": d}, upsert=True)
-    # mongo.db.docs.update_one({"file":11},{"$set": data }, upsert=True)
 
-    ########### uncomment below #############
-    # TODO: remove a session variable here of a key as "uid_by_aid" and value ="uid-aid"
-    # session.get('key', 'not set')
-    # session.pop('key', None)
-    # pop the session when they click on save
-    session.pop('uid_by_aid','not_set')
-    #######################################
 
 @socketio.on('autoupdate')
 def autoupdate(jsondata):
@@ -140,10 +133,10 @@ def autoupdate(jsondata):
     jsonfile=json.loads(jsondata)
     # print(jsonfile)
     n=int(jsonfile['file'])
-    # mongo.db.docs.delete_one({"file":n})
-    # mongo.db.docs.insert(jsonfile,check_keys=False)
-    # or
-    mongo.db.docs.update_one({"file":n},{"$set": jsonfile}, upsert=True)
+    fullpath=pathtojson+str(n)+'.json'
+    file=open(fullpath,'w')
+    file.write(data)
+    file.close()
 
 @socketio.on('update')
 def update(json_data):
@@ -157,42 +150,50 @@ def update(json_data):
 
 # fetchURL and send it back
 @socketio.on('fetchURL')
-def fetchURL():
-    # set the session variable here
+def fetchURL(aid):
+
+    #  added to request queue
+    caid=RequestUIDS(ruid=aid)
+    db.session.add(caid)
+    db.session.commit()
+    print('AID: ',aid, 'Requesting: ')
+
     time.sleep(1)
+    # Puppy.query.all()
+    aid=RequestUIDS.query.all()
+    if aid[0].ruid:
+        db.session.delete(aid[0])
+        db.session.commit()
+    # set the session variable here
+    # time.sleep(1)
     # TODO: n = no of annotated file in the database
-    n=int(mongo.db.docs.count())
-    print(n)
-    n=n+1
-    imagelink=ImageLinks.query.get(n)
-    # tempLinks = the nth url from ImageLinks TABLE
-    imagelink=str(imagelink.links)
-    jsonfile={}
-    jsonfile['file']=n
-    jsonfile['imagelinks']=imagelink
-    data=json.dumps(jsonfile)
-    print(type(data))
-    # push n value to puid and update the info table
-    ############# uncomment below #############
-    puid=PUIDS(n)
-    db.session.add(puid)
-    db.session.commit()
-
-    # update the info table
-    ############# uncomment below ############
-    status="in_process"
-    dateOfAnnotation=time.ctime()
-    info=Info(str(current_user.id),n,status,dateOfAnnotation,imagelink)
-    db.session.add(info)
-    db.session.commit()
-
-    # set the session
-    if 'uid_by_aid' in session:
-        session.pop('uid_by_aid','not_set')
+    n=0
+    uids=UIDS.query.all()
+    if uids:
+        db.session.delete(uids[0])
+        db.session.commit()
+        # int(uids[0].uid)
+        n=int(uids[0].uid)
+        imagelink=ImageLinks.query.get(n)
+        # tempLinks = the nth url from ImageLinks TABLE
+        imagelink=str(imagelink.links)
+        jsonfile={}
+        jsonfile['file']=n
+        jsonfile['imagelinks']=str(imagelink)
+        data=json.dumps(jsonfile)
+        print(type(data))
+        
+        # update the info table
+        ############# uncomment below ############
+        status="in_process"
+        dateOfAnnotation=time.ctime()
+        info=Info(str(current_user.id),n,status,dateOfAnnotation,str(imagelink))
+        db.session.add(info)
+        db.session.commit()
+        emit('fetchURLResponse',str(data))
     else:
-        session['uid_by_aid'] = str(n) +'_'+ str(current_user.id)
-    # # emit the corresponding links
-    emit('fetchURLResponse',str(data))
+        # TODO: handle this exception
+        emit('fetchURLResponse',str("none"))
 
 @socketio.on('pushebackUID')
 def pushebackUID(uid):
@@ -287,4 +288,5 @@ if __name__ == '__main__':
     #     db.session.add(t)
     # db.session.commit()
     # db.create_all()
+    # TODO: remove all in_process uid to uids
     socketio.run(app)

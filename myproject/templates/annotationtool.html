@@ -66,17 +66,18 @@
 
     <script type="text/javascript">
       var result=document.getElementById('result');
-      function myfun(){
-        var inputType=document.getElementById('myonoffswitch');
-        if (inputType.checked) {
-          // document.getElementById('start').innerHTML =
-          document.getElementById('newfile').id="start";
-          document.getElementById('result').innerHTML="Correcting...";
-        }else{
-            document.getElementById('start').id="newfile";
-            document.getElementById('result').innerHTML="Annotating new file....";
-        }
-      }
+      // TEMP: uncomment for correcting mode
+      // function myfun(){
+      //   var inputType=document.getElementById('myonoffswitch');
+      //   if (inputType.checked) {
+      //     // document.getElementById('start').innerHTML =
+      //     // document.getElementById('newfile').id="start";
+      //     document.getElementById('result').innerHTML="Correcting...";
+      //   }else{
+      //       // document.getElementById('start').id="newfile";
+      //       document.getElementById('result').innerHTML="Annotating new file....";
+      //   }
+      // }
     </script>
 
   <script type="text/javascript">
@@ -898,7 +899,7 @@
 
     /* Region shape selection panel inside leftsidebar */
     ul.region_shape {
-      font-size: xx-large;
+      /* font-size: xx-large; */
       list-style-type: none;
       overflow: hidden;
       padding: 0.4em 0;
@@ -1291,7 +1292,7 @@
         <!-- <li>Project
           <ul> -->
             <!-- project_open_parse_json_file() -->
-            <!-- <li onclick="project_open_parse_json_file()" title="Load a VIA project (from a JSON file)">Load</li>
+            <!-- <li onclick="project_open_select_project_file()" title="Load a VIA project (from a JSON file)">Load</li>
             <li onclick="project_save_with_confirm()" title="Save this VIA project (as a JSON file)">Save</li>
             <li onclick="settings_panel_toggle()" title="Show/edit project settings">Settings</li>
             <li class="submenu_divider"></li>
@@ -1336,11 +1337,11 @@
             var t=autoSaveFileForUpdate();
             if(t.file){
               t=JSON.stringify(t);
-              socket.emit("autoupdate",t);
-              console.log("updating..."+t);
+              // socket.emit("autoupdate",t);
+              // console.log("updating..."+t);
             }
             else {
-              console.log("not updating.......");
+              // console.log("not updating.......");
             }
 
             setTimeout(autoupdatetest, 10000);// user status at every 5 seconds
@@ -1355,7 +1356,7 @@
 
             socket.on('fetchUIDAnswer', function(json) {
               if (json) {
-                document.getElementById('start').innerHTML = "Request";
+                document.getElementById('start').innerHTML = "Request Annonated";
                 document.getElementById('start').disabled = true;
               }
               // $("#result").html(json);
@@ -1380,7 +1381,13 @@
             $('li #newfile').on('click', function() {
               // TODO: emit and get new file Image URL
               document.getElementById('newfile').innerHTML = "Please wait! Requesting....";
-              socket.emit('fetchURL');
+              socket.emit('fetchURL', {{aid}});
+            });
+
+            $('li #skip').on('click', function() {
+              // show the toast of "skipped" for a sec
+              show_message('skipped..',1000)
+              // socket.emit('fetchNext');
             });
 
             socket.on('fetchURLResponse', function(data) {
@@ -1395,7 +1402,7 @@
                   // dnewadded
                   // project_save_with_confirm();
                   // autoupdate();
-                  document.getElementById('newfile').innerHTML = "Request";
+                  document.getElementById('newfile').innerHTML = "Request New";
               }
               console.log(url);
             });
@@ -1412,19 +1419,41 @@
 
         </script>
 
-        <!-- request new file   -->
-        <!-- <li>
-          <a id="newfile">Request New</a>
-        </li> -->
+        <li>
+          Shape
+          <ul class="region_shape">
+            <li id="region_shape_polygon" onclick="select_region_shape('polygon')" title="Polygon"><svg height="32" viewbox="0 0 32 32">
+                <use xlink:href="#shape_polygon"></use>
+              </svg>Polygon </li>
+            <li id="region_shape_polyline" onclick="select_region_shape('polyline')" title="Polyline"><svg height="32" viewbox="0 0 32 32">
+                <use xlink:href="#shape_polyline"></use>
+              </svg>Polyline</li>
+            <li id="region_shape_rect" onclick="select_region_shape('rect')" title="Rectangle"><svg height="32" viewbox="0 0 32 32">
+                <use xlink:href="#shape_rectangle"></use>
+              </svg>Rectangle</li>
+            <li id="region_shape_circle" class="selected" onclick="select_region_shape('circle')" title="Freehand"><svg height="32" viewbox="0 0 32 32">
+                <use xlink:href="#shape_circle"></use>
+              </svg>Freehand</li>
+          </ul>
+        </li>
 
-        <!-- request annonated image -->
-        <!-- <li>
-          <a id="start">Request Annotated</a>
-        </li> -->
+        <!-- request new file   -->
+        <li>
+          <a id="newfile">Request New</a>
+        </li>
 
         <li>
-          <a id="newfile">Request</a>
+          <a id="skip">Skip</a>
         </li>
+
+        <!-- request annonated image -->
+        <li>
+          <a id="start">Request Annotated</a>
+        </li>
+
+        <!-- <li>
+          <a id="newfile">Request</a>
+        </li> -->
 
         <!--Skip  -->
         <!-- <li> <a id="skipt">Skip</a> </li> -->
@@ -1434,14 +1463,16 @@
 
         <!-- Correct Image  -->
 
-        <li><div class="onoffswitch" onclick="myfun()">
-    <input type="checkbox" name="onoffswitch" class="onoffswitch-checkbox" id="myonoffswitch">
-    <label class="onoffswitch-label" for="myonoffswitch">
-        <span class="onoffswitch-inner"></span>
-        <span class="onoffswitch-switch"></span>
-    </label>
-</div><p id="result"></p>
-        </li>
+        <li>
+            <div class="onoffswitch" onclick="myfun()">
+              <input type="checkbox" name="onoffswitch" class="onoffswitch-checkbox" id="myonoffswitch">
+              <label class="onoffswitch-label" for="myonoffswitch">
+                <span class="onoffswitch-inner"></span>
+                <span class="onoffswitch-switch"></span>
+              </label>
+            </div>
+            <p id="result"></p>
+          </li>
         <!--Exit  -->
         <!-- <li>  <a id="exitt"> Exit</a> </li> -->
 
@@ -1479,6 +1510,7 @@
 
     <!-- Shortcut toolbar -->
     <div class="toolbar">
+      <svg onclick="settings_panel_toggle()" viewbox="0 0 24 24"><use xlink:href="#icon_settings"></use><title>Update Project Settings</title></svg>
     </div>
     <!-- end of shortcut toolbar -->
     <input type="file" id="invisible_file_input" name="files[]" style="display:none">
@@ -1487,8 +1519,9 @@
   <!-- Middle Panel contains a left-sidebar and image display areas -->
   <div class="middle_panel">
     <!-- this panel contains a button to shows the left side bar -->
-    <div id="leftsidebar_collapse_panel">
-      <span class="text_button" onclick="leftsidebar_toggle()" title="Show left sidebar">&rtrif;</span>
+    <div id="leftsidebar_collapse_panel" style="display:none">
+      <!-- onclick="leftsidebar_toggle()" -->
+      <span class="text_button"  title="Show left sidebar">&rtrif;</span>
     </div>
 
     <div id="leftsidebar">
@@ -1498,7 +1531,7 @@
         <span class="text_button" onclick="leftsidebar_toggle()" title="Show/hide this toolbar panel">&ltrif;</span>
       </div>
 
-      <button class="leftsidebar_accordion active">Region Shape</button>
+      <!-- <button class="leftsidebar_accordion active">Region Shape</button>
       <div class="leftsidebar_accordion_panel show">
         <ul class="region_shape">
           <li id="region_shape_polygon" onclick="select_region_shape('polygon')" title="Polygon"><svg height="32" viewbox="0 0 32 32">
@@ -1521,7 +1554,7 @@
             </svg></li>
 
         </ul>
-      </div>
+      </div> -->
 
       <!-- Project -->
       <button class="leftsidebar_accordion active" id="project_panel_title">Project</button>
@@ -1688,7 +1721,7 @@
           </div>
 
           <div class="value">
-            <input type="text" id="_via_settings.core.default_filepath" placeholder="/datasets/pascal/voc2012/VOCdevkit/VOC2012/JPEGImages/" />
+            <input type="text" id="_via_settings.core.default_filepath" />
           </div>
         </div>
 
@@ -8473,8 +8506,10 @@ function autoSaveFileForUpdate(){
       // console.log(JSON.stringify(_via_project))
 
       var socket1 = io.connect('http://127.0.0.1:5000');
-      clear_display_area();
-      _via_clear_reg_canvas();
+      // TODO: IMPORTANT
+      // clear all things after save button
+      // clear_display_area();
+      // _via_clear_reg_canvas();
       // _via_project["aid"]={{aid}}
       // file name added
       _via_project.file = parseInt(current_file);
