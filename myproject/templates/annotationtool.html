@@ -1355,7 +1355,7 @@
             });
 
             socket.on('fetchUIDAnswer', function(json) {
-              if (json) {
+              if (json && json!="na") {
                 document.getElementById('start').innerHTML = "Request Annonated";
                 document.getElementById('start').disabled = true;
               }
@@ -1384,13 +1384,21 @@
               socket.emit('fetchURL', {{aid}});
             });
 
-            $('li #skip').on('click', function() {
-              // show the toast of "skipped" for a sec
-              show_message('skipped..',1000)
-              // socket.emit('fetchNext');
-            });
+            //todo
+            // $('li #skip').on('click', function() {
+            //   // show the toast of "skipped" for a sec
+            //   show_message('skipped..',1000)
+            //   // socket.emit('fetchNext',String(current_file));
+            // });
+            // // fetchNextResponse
+            // socket.on('fetchNextResponse', function() {
+            //   console.log("Skipped file");
+            // });
 
             socket.on('fetchURLResponse', function(data) {
+              // refresh the screeen
+              // reload_flag=1;
+              // onbeforeunload();
               data=JSON.parse(data)
               var file=data.file;
               current_file=file;
@@ -1407,6 +1415,7 @@
               }
               console.log(url);
             });
+
 
 
             $('#exit').on('click', function() {
@@ -1448,9 +1457,9 @@
         </li>
 
         <!-- request annonated image -->
-        <!-- <li>
-          <a id="start">Request Annotated</a>
-        </li> -->
+        <li>
+          <a id="start">Request Annonated</a>
+        </li>
 
         <!-- <li>
           <a id="newfile">Request</a>

@@ -49,48 +49,38 @@ def fetchUID(aid):
         db.session.delete(aid[0])
         db.session.commit()
 
-#  to delete the uid that is processed
-    uids=UIDS.query.all()
-    if uids:
-        db.session.delete(uids[0])
-        db.session.commit()
-        # not for deploy ,comment it
-        # db.session.add(uids[0].uid)
-        # db.session.commit()
-        # till here
+    # GET THE FIRST FILE IN modified folder
+    # TODO: FIND THE FILE Number
+    DIR = pathtomodifiedjson
+    files=[name for name in os.listdir(DIR) if os.path.isfile(os.path.join(DIR, name))]
+    if len(files)>0:
+        filename=str(files[0])
+        n=int(filename[:-5])
 
+        filepath=pathtomodifiedjson+filename
+        print(filepath)
+        file=open(filepath,'r')
+        data=str(file.read())
+        file.close()
         ############### uncomment below #########
         # TODO: add a session variable here with a key as "uid_by_aid" and value ="uid-aid"
         # if not session['uid_by_aid']:
             # session['uid_by_aid'] = str(uids[0].uid) +'_'+ str(current_user.id)
         #############################################
 
-        #to push uid to processed uid
-        puid=PUIDS(uids[0].uid)
-        db.session.add(puid)
-        db.session.commit()
-
         #  add the info into table
         #  get the image links also
-        imagelink=ImageLinks.query.filter_by(id=int(uids[0].uid)).first()
+        imagelink=ImageLinks.query.filter_by(id=n).first()
         dateOfAnnotation=time.ctime()
         # Info database, mark status Column as "in_process"
         status="in_process"
-        info=Info(str(current_user.id),str(uids[0].uid),status,dateOfAnnotation,str(imagelink.links))
+        info=Info(str(current_user.id),str(n),status,dateOfAnnotation,str(imagelink.links))
         db.session.add(info)
         db.session.commit()
-
-        n=int(uids[0].uid)
-        # n=8
-        filepath=pathtojson+str(n)+'.json'
-        print(filepath)
-        file=open(filepath,'r')
-        data=str(file.read())
-        file.close()
-
         emit('fetchUIDAnswer',str(data))
     else:
-        emit('fetchUIDAnswer',"None Allocated! Please Wait")
+        emit('fetchUIDAnswer',"na")
+
 
 
 @socketio.on('mydata')
@@ -128,6 +118,59 @@ def mydata(data):
     print("saved annotated file: "+str(n)+" by User AId :"+ str(current_user.id) )
     emit('saveconfirmation',"saved")
 
+@socketio.on('fetchNext')
+def fetchNext(n):
+    print('Skipped uid'+str(n))
+    #########################
+    # push current uid
+    puid=PUIDS(int(n))
+    db.session.add(puid)
+    db.session.commit()
+    #########################
+    # remove in-process of this n in Info table
+    temp = Info.query.filter_by(uid=str(n),aid=str(current_user.id)).first()
+    db.session.delete(temp)
+    db.session.commit()
+    #########################
+    #  added to request queue
+    aid=int(current_user.id)
+
+    caid=RequestUIDS(ruid=aid)
+    db.session.add(caid)
+    db.session.commit()
+    print('AID: ',aid, 'Requesting: ')
+
+    time.sleep(1)
+    # Puppy.query.all()
+    aid=RequestUIDS.query.all()
+    if aid[0].ruid:
+        db.session.delete(aid[0])
+        db.session.commit()
+        # set the session variable here
+        # time.sleep(1)
+        # TODO: n = no of annotated file in the database
+    n=0
+    uids=UIDS.query.all()
+    if uids:
+        db.session.delete(uids[0])
+        db.session.commit()
+        # int(uids[0].uid)
+        n=int(uids[0].uid)
+        imagelink=ImageLinks.query.get(n)
+        # tempLinks = the nth url from ImageLinks TABLE
+        imagelink=str(imagelink.links)
+        jsonfile={}
+        jsonfile['file']=n
+        jsonfile['imagelinks']=str(imagelink)
+        data=json.dumps(jsonfile)
+        print(type(data))
+
+        emit('fetchNextResponse',str(data))
+    else:
+        # TODO: handle this exception
+        emit('fetchNextResponse',str("none"))
+
+
 
 @socketio.on('autoupdate')
 def autoupdate(jsondata):
@@ -150,7 +193,7 @@ def update(json_data):
     # return "Update Successful!"
     # update nth file
     d = json.load(json_data)
-    mongo.db.docs.update_one({"file":n},{"$set": d}, upsert=True)
+    # mongo.db.docs.update_one({"file":n},{"$set": d}, upsert=True)
     # return redirect(url_for("annotationtool"))
 
 # fetchURL and send it back
@@ -225,6 +268,7 @@ def pushebackUID(uid):
 
 @app.route('/')
 def home():
+    # TODO: show user their undone work and update info table(inprocess-undone)
     return render_template('home.html')
 
 
@@ -293,5 +337,4 @@ if __name__ == '__main__':
     #     db.session.add(t)
     # db.session.commit()
     # db.create_all()
-    # TODO: remove all in_process uid to uids
     socketio.run(app)
