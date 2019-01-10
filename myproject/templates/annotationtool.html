@@ -1325,31 +1325,31 @@
 
         var curr_uid = 0;
         var socket;
+        var varupdate;
           function autoupdatetest() {
             // var t=autoSaveFileForUpdate();
             // t=JSON.stringify(t);
             // socket.emit("autoupdate",t);
             // console.log("updating..."+t);
 
-            // user={{ session.get('uid_by_aid','Not set') }};
-            // console.log(user);
-            //
+
             var t=autoSaveFileForUpdate();
             if(t.file){
               t=JSON.stringify(t);
-              // socket.emit("autoupdate",t);
+              socket.emit("autoupdate",t);
               // console.log("updating..."+t);
+              console.log("updating...");
             }
             else {
-              // console.log("not updating.......");
+              console.log("not updating.......");
             }
 
-            setTimeout(autoupdatetest, 10000);// user status at every 5 seconds
+             varupdate=setTimeout(autoupdatetest, 10000);// user status at every 5 seconds
           }
 
           $(document).ready(function() {
             socket = io.connect('http://127.0.0.1:5000');
-            autoupdatetest();
+            // autoupdatetest();
             socket.on('connect', function() {
               socket.emit('myconnection', 'AID: ' + {{aid}} + 'is connected');
             });
@@ -1398,6 +1398,7 @@
               console.log(current_file);
               var url=data.imagelinks;
               if (url) {
+                 autoupdatetest();
                   project_file_add_url_with_input(url);
                   // dnewadded
                   // project_save_with_confirm();
@@ -1447,9 +1448,9 @@
         </li>
 
         <!-- request annonated image -->
-        <li>
+        <!-- <li>
           <a id="start">Request Annotated</a>
-        </li>
+        </li> -->
 
         <!-- <li>
           <a id="newfile">Request</a>
@@ -1463,7 +1464,7 @@
 
         <!-- Correct Image  -->
 
-        <li>
+        <!-- <li>
             <div class="onoffswitch" onclick="myfun()">
               <input type="checkbox" name="onoffswitch" class="onoffswitch-checkbox" id="myonoffswitch">
               <label class="onoffswitch-label" for="myonoffswitch">
@@ -1472,7 +1473,7 @@
               </label>
             </div>
             <p id="result"></p>
-          </li>
+          </li> -->
         <!--Exit  -->
         <!-- <li>  <a id="exitt"> Exit</a> </li> -->
 
@@ -1509,9 +1510,9 @@
     </div> <!-- end of menubar -->
 
     <!-- Shortcut toolbar -->
-    <div class="toolbar">
+    <!-- <div class="toolbar">
       <svg onclick="settings_panel_toggle()" viewbox="0 0 24 24"><use xlink:href="#icon_settings"></use><title>Update Project Settings</title></svg>
-    </div>
+    </div> -->
     <!-- end of shortcut toolbar -->
     <input type="file" id="invisible_file_input" name="files[]" style="display:none">
   </div> <!-- endof #top_panel -->
@@ -8487,6 +8488,8 @@ function autoSaveFileForUpdate(){
   temp.file = parseInt(current_file);
   return temp;
 }
+var socket1;
+ socket1 = io.connect('http://127.0.0.1:5000');
     function project_save_confirmed(input) {
       if (input.project_name.value !== _via_settings.project.name) {
         project_set_name(input.project_name.value);
@@ -8505,7 +8508,7 @@ function autoSaveFileForUpdate(){
       var filename = input.project_name.value + '.json';
       // console.log(JSON.stringify(_via_project))
 
-      var socket1 = io.connect('http://127.0.0.1:5000');
+
       // TODO: IMPORTANT
       // clear all things after save button
       // clear_display_area();
@@ -8513,7 +8516,13 @@ function autoSaveFileForUpdate(){
       // _via_project["aid"]={{aid}}
       // file name added
       _via_project.file = parseInt(current_file);
+      // stop updating
+      // clearing timeout varupdate
+      clearTimeout(varupdate);
       socket1.emit("mydata", JSON.stringify(_via_project));
+      show_message('saving....',2000);
+      // window.location.reload();
+      // onbeforeunload();
       var data_blob = new Blob([JSON.stringify(_via_project)], {
         type: 'text/json;charset=utf-8'
       });
@@ -8522,7 +8531,17 @@ function autoSaveFileForUpdate(){
       save_data_to_local_file(data_blob, filename);
 
       user_input_default_cancel_handler();
+
     }
+var reload_flag=0;
+socket1.on('saveconfirmation',function(confirmation){
+  show_message('saved!',2000);
+  // reload_flag
+  reload_flag=1;
+  onbeforeunload();
+  // window.location.reload();
+});
+
 // ############################ Look before you code ########################
 //         socket3.emit("autoupdate",JSON.stringify(t));
 // When user close the window stop autoupdate
@@ -11219,15 +11238,20 @@ function autoSaveFileForUpdate(){
 
     // warn user of possible loss of data
     window.onbeforeunload = function(e) {
-      e = e || window.event;
+      if(reload_flag!=1){
+      	e = e || window.event;
 
       // For IE and Firefox prior to version 4
       if (e) {
-        e.returnValue = 'Did you save your data?';
+          e.returnValue = 'Did you save your data?';
       }
 
       // For Safari
       return 'Did you save your data?';
+
+      }
+      else
+      	window.location.reload();
     };
 
     // var request_newfile=document.getElementById('newfile');

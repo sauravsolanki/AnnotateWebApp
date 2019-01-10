@@ -21,6 +21,7 @@ import os, os.path
 # session(app)
 ####################################
 pathtojson='/home/saurav/Music/json/'
+pathtomodifiedjson='/home/saurav/Music/modified_json/'
 
 @socketio.on('myconnection')
 def test_connect(msg):
@@ -100,7 +101,15 @@ def mydata(data):
     jsonfile=json.loads(data)
     # print(jsonfile)
     n=int(jsonfile['file'])
-    # due to presence of object id ,update operation not working
+    ###################################
+    # delete in the modified path
+    fullpath=pathtomodifiedjson+str(n)+'.json'
+    print(fullpath)
+    try:
+        os.remove(fullpath)
+    except OSError:
+        print("file not exist")
+    ###################################
     # put the file in processed .
     puid=PUIDS(n)
     db.session.add(puid)
@@ -117,26 +126,22 @@ def mydata(data):
     temp.dateOfAnnotation=str(temp.dateOfAnnotation)+"---"+str(time.ctime());
     db.session.commit()
     print("saved annotated file: "+str(n)+" by User AId :"+ str(current_user.id) )
+    emit('saveconfirmation',"saved")
 
 
 @socketio.on('autoupdate')
 def autoupdate(jsondata):
-    # if user is in session and jsondata is not empty update the corresponding file value
-    # then only update the json file
     print(type(jsondata)) # <class 'str'>
-    # print(type(json.dumps(jsondata))) # <class 'str'>
-    # print(type(json.loads(json.dumps(jsondata)))) # <class 'str'>
     print('updating.....')
-    # print('updating.....')
-    # jsonfile=json.loads(jsondata)
-    # save to database
     jsonfile=json.loads(jsondata)
-    # print(jsonfile)
     n=int(jsonfile['file'])
-    fullpath=pathtojson+str(n)+'.json'
+    #############################
+    # write to modified image
+    fullpath=pathtomodifiedjson+str(n)+'.json'
     file=open(fullpath,'w')
-    file.write(data)
+    file.write(jsondata)
     file.close()
+    #############################
 
 @socketio.on('update')
 def update(json_data):
@@ -182,7 +187,7 @@ def fetchURL(aid):
         jsonfile['imagelinks']=str(imagelink)
         data=json.dumps(jsonfile)
         print(type(data))
-        
+
         # update the info table
         ############# uncomment below ############
         status="in_process"
