@@ -53,6 +53,7 @@ def fetchUID(aid):
     # TODO: FIND THE FILE Number
     DIR = pathtomodifiedjson
     files=[name for name in os.listdir(DIR) if os.path.isfile(os.path.join(DIR, name))]
+    print("modified json"+str(len(files)))
     if len(files)>0:
         filename=str(files[0])
         n=int(filename[:-5])
@@ -77,6 +78,7 @@ def fetchUID(aid):
         info=Info(str(current_user.id),str(n),status,dateOfAnnotation,str(imagelink.links))
         db.session.add(info)
         db.session.commit()
+        print(data)
         emit('fetchUIDAnswer',str(data))
     else:
         emit('fetchUIDAnswer',"na")

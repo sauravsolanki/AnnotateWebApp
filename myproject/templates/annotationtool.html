@@ -40,12 +40,12 @@
 .onoffswitch-inner:before {
     content: "Correcting...";
     padding-left: 10px;
-    background-color: #34A7C1; color: #FFFFFF;
+    background-color: #999999; color: #FFFFFF;
 }
 .onoffswitch-inner:after {
     content: "New Image";
     padding-right: 10px;
-    background-color: #EEEEEE; color: #999999;
+    background-color: #212121; color: #999999;
     text-align: right;
 }
 .onoffswitch-switch {
@@ -64,21 +64,6 @@
 }
     </style>
 
-    <script type="text/javascript">
-      var result=document.getElementById('result');
-      // TEMP: uncomment for correcting mode
-      // function myfun(){
-      //   var inputType=document.getElementById('myonoffswitch');
-      //   if (inputType.checked) {
-      //     // document.getElementById('start').innerHTML =
-      //     // document.getElementById('newfile').id="start";
-      //     document.getElementById('result').innerHTML="Correcting...";
-      //   }else{
-      //       // document.getElementById('start').id="newfile";
-      //       document.getElementById('result').innerHTML="Annotating new file....";
-      //   }
-      // }
-    </script>
 
   <script type="text/javascript">
     //<!--AUTO_INSERT_GOOGLE_ANALYTICS_JS_HERE-->
@@ -1307,17 +1292,17 @@
           </ul>
         </li> -->
 
-        <li>Annotation
-          <ul>
+        <!-- <li>Annotation
+          <ul> -->
             <!-- <li onclick="download_all_region_data('csv')" title="Export annotations to a CSV file">Export Annotations (as csv)</li> -->
-            <li onclick="download_all_region_data('json')" title="Export annotaitons to a JSON file">Export Annotations (as json)</li>
-            <li onclick="" class="submenu_divider"></li>
+            <!-- <li onclick="download_all_region_data('json')" title="Export annotaitons to a JSON file">Export Annotations (as json)</li>
+            <li onclick="" class="submenu_divider"></li> -->
             <!-- <li onclick="sel_local_data_file('annotations')" title="Import annotations from a CSV file">Import Annotations (from csv)</li> -->
-            <li onclick="sel_local_data_file('annotations')" title="Import annotations from a JSON file">Import Annotations (from json)</li>
-            <li class="submenu_divider"></li>
-            <li onclick="show_annotation_data()" title="Show a preview of annotations (opens in a new browser windows)">Preview Annotations</li>
-          </ul>
-        </li>
+            <!-- <li onclick="sel_local_data_file('annotations')" title="Import annotations from a JSON file">Import Annotations (from json)</li> -->
+            <!-- <li class="submenu_divider"></li> -->
+            <!-- <li onclick="show_annotation_data()" title="Show a preview of annotations (opens in a new browser windows)">Preview Annotations</li> -->
+          <!-- </ul> -->
+        <!-- </li> -->
         <!-- <li><a href="http://0.0.0.0:8090/logout">LOGOUT</a> </li> -->
         <!-- Added-->
 
@@ -1355,33 +1340,73 @@
             });
 
             socket.on('fetchUIDAnswer', function(json) {
-              if (json && json!="na") {
-                document.getElementById('start').innerHTML = "Request Annonated";
-                document.getElementById('start').disabled = true;
+              if (json=="na") {
+                show_message('No Image in Annotated Dir.Please disable the correct tab button.',3000);
+              }else{
+                project_open_parse_json_file(json)
+                console.log("Current UID Annotating: file " + JSON.parse(json).file); // printing undefined why??
+                console.log('Received JSON' + json);
               }
+
+              // document.getElementById('start').innerHTML = "Request Annonated";
+              document.getElementById('myrequest').innerHTML = "Request";
               // $("#result").html(json);
               // tochange for mistake
-              console.log("Current UID Annotating: file " + JSON.parse(json).file); // printing undefined why??
-              project_open_parse_json_file(json)
 
               // curr_uid=uid;
               // TODO(1) : On receiving JSON here, show it
               // TODO(2) : When User click save button, update the corresponding annotated file
-              console.log('Received JSON' + json);
             });
 
             $('li #start').on('click', function() {
               // TODO: retrive it back from current_userId
               socket.emit('fetchUID', {{aid}});
-              document.getElementById('start').innerHTML = "Please wait! Requesting for UID....";
-              document.getElementById('exit').disabled = false;
+              var start=document.getElementById('start');
+              if (start){
+                start.innerHTML = "Please wait! Requesting for UID....";
+              }
 
             });
 
             $('li #newfile').on('click', function() {
               // TODO: emit and get new file Image URL
-              document.getElementById('newfile').innerHTML = "Please wait! Requesting....";
+              var newfile=document.getElementById('newfile');
+              if(newfile){
+                newfile.innerHTML = "Please wait! Requesting....";
+              }
               socket.emit('fetchURL', {{aid}});
+            });
+
+            var correctionmode="off";
+            $('li #tbutton').on('click', function() {
+              var inputType=document.getElementById('myonoffswitch');
+              if (inputType.checked) {
+                correctionmode="on"
+
+              }else{
+                correctionmode="off"
+              }
+              console.log(correctionmode);
+
+            });
+
+            $('li #myrequest').on('click', function() {
+              if(correctionmode=="on"){
+                // request for annonated json
+                var start=document.getElementById('myrequest');
+                if (start){
+                  start.innerHTML = "Please wait! Requesting....";
+                }
+                socket.emit('fetchUID', {{aid}});
+              }else {
+                // request for new file
+                var newfile=document.getElementById('myrequest');
+                if(newfile){
+                  newfile.innerHTML = "Please wait! Requesting....";
+                }
+                socket.emit('fetchURL', {{aid}});
+              }
+
             });
 
             //todo
@@ -1411,7 +1436,9 @@
                   // dnewadded
                   // project_save_with_confirm();
                   // autoupdate();
-                  document.getElementById('newfile').innerHTML = "Request New";
+                  // document.getElementById('newfile').innerHTML = "Request New";
+                  document.getElementById('myrequest').innerHTML = "Request";
+
               }
               console.log(url);
             });
@@ -1427,7 +1454,10 @@
             });
           });
 
+
+
         </script>
+
 
         <li>
           Shape
@@ -1448,41 +1478,35 @@
         </li>
 
         <!-- request new file   -->
-        <li>
+        <!-- <li>
           <a id="newfile">Request New</a>
-        </li>
-
-        <li>
-          <a id="skip">Skip</a>
-        </li>
-
-        <!-- request annonated image -->
-        <li>
-          <a id="start">Request Annonated</a>
-        </li>
+        </li> -->
 
         <!-- <li>
-          <a id="newfile">Request</a>
+          <a id="skip">Skip</a>
         </li> -->
+
+        <!-- request annonated image -->
+        <!-- <li>
+          <a id="start">Request Annonated</a>
+        </li> -->
+
+        <li>
+          <a id="myrequest">Request</a>
+        </li>
 
         <!--Skip  -->
         <!-- <li> <a id="skipt">Skip</a> </li> -->
 
         <!-- Done  -->
-        <li onclick="project_save_with_confirm()" title="Save this VIA project (as a JSON file)"> <a id="savet">Save</a> </li>
 
+        <li onclick="project_save_with_confirm()" title="Save this VIA project (as a JSON file)"> <a id="save">Save</a> </li>
+
+        <li class="nav-item">
+          <a  href="{{ url_for('logout') }}">Logout</a>
+        </li>
         <!-- Correct Image  -->
 
-        <!-- <li>
-            <div class="onoffswitch" onclick="myfun()">
-              <input type="checkbox" name="onoffswitch" class="onoffswitch-checkbox" id="myonoffswitch">
-              <label class="onoffswitch-label" for="myonoffswitch">
-                <span class="onoffswitch-inner"></span>
-                <span class="onoffswitch-switch"></span>
-              </label>
-            </div>
-            <p id="result"></p>
-          </li> -->
         <!--Exit  -->
         <!-- <li>  <a id="exitt"> Exit</a> </li> -->
 
@@ -1515,8 +1539,21 @@
               <li onclick="set_display_area_content(VIA_DISPLAY_AREA_CONTENT_NAME.PAGE_ABOUT)" title="Show more details about this application">About VIA</li>
             </ul>
           </li> -->
+
+          <li style="padding: 0px;height:35.38px;">
+            <div class="onoffswitch" id="tbutton">
+              <input type="checkbox" name="onoffswitch" class="onoffswitch-checkbox" id="myonoffswitch">
+              <label class="onoffswitch-label" for="myonoffswitch">
+                <span class="onoffswitch-inner"></span>
+                <span class="onoffswitch-switch"></span>
+              </label>
+            </div>
+          </li>
+
       </ul>
     </div> <!-- end of menubar -->
+
+
 
     <!-- Shortcut toolbar -->
     <!-- <div class="toolbar">
@@ -11302,9 +11339,9 @@ socket1.on('saveconfirmation',function(confirmation){
     <script src="./tests/_via_test.js"></script>
     <script src="./tests/_via_test_region.js"></script>
     -->
-  <p class="aidclass">Annotator Id (AID) : {{aid}}</p>
+  <!-- <p class="aidclass">Annotator Id (AID) : {{aid}}</p>
   <p id="result">UID : </p>
-  <p id="imagelinks">Current Image Annotation :</p>
+  <p id="imagelinks">Current Image Annotation :</p> -->
 </body>
 
 </html>
