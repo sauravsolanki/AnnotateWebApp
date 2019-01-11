@@ -1410,15 +1410,22 @@
             });
 
             //todo
-            // $('li #skip').on('click', function() {
-            //   // show the toast of "skipped" for a sec
-            //   show_message('skipped..',1000)
-            //   // socket.emit('fetchNext',String(current_file));
-            // });
-            // // fetchNextResponse
-            // socket.on('fetchNextResponse', function() {
-            //   console.log("Skipped file");
-            // });
+            $('li #skipt').on('click', function() {
+              // show the toast of "skipped" for a sec
+              show_message('skipped..',1000)
+              if(current_file){
+                socket.emit('fetchNext',String(current_file));
+              }else {
+                show_message('no images loaded',2000)
+              }
+            });
+            // fetchNextResponse
+            socket.on('fetchNextResponse', function() {
+              console.log("Skipped file");
+              // location.reload
+              reload_flag=1;
+              onbeforeunload();
+            });
 
             socket.on('fetchURLResponse', function(data) {
               // refresh the screeen
@@ -1431,7 +1438,8 @@
               console.log(current_file);
               var url=data.imagelinks;
               if (url) {
-                 autoupdatetest();
+                // TODO: switch off the update
+                 // autoupdatetest();
                   project_file_add_url_with_input(url);
                   // dnewadded
                   // project_save_with_confirm();
@@ -1458,22 +1466,24 @@
 
         </script>
 
-
         <li>
-          Shape
-          <ul class="region_shape">
+          <a href="{{ url_for('home') }}">Home </a>
+        </li>
+
+        <li> Regions
+          <ul>
             <li id="region_shape_polygon" onclick="select_region_shape('polygon')" title="Polygon"><svg height="32" viewbox="0 0 32 32">
                 <use xlink:href="#shape_polygon"></use>
-              </svg>Polygon </li>
+              </svg> Polygon</li>
             <li id="region_shape_polyline" onclick="select_region_shape('polyline')" title="Polyline"><svg height="32" viewbox="0 0 32 32">
                 <use xlink:href="#shape_polyline"></use>
-              </svg>Polyline</li>
+              </svg> Polyline</li>
             <li id="region_shape_rect" onclick="select_region_shape('rect')" title="Rectangle"><svg height="32" viewbox="0 0 32 32">
                 <use xlink:href="#shape_rectangle"></use>
-              </svg>Rectangle</li>
+              </svg> Rectangle</li>
             <li id="region_shape_circle" class="selected" onclick="select_region_shape('circle')" title="Freehand"><svg height="32" viewbox="0 0 32 32">
                 <use xlink:href="#shape_circle"></use>
-              </svg>Freehand</li>
+              </svg> Freehand</li>
           </ul>
         </li>
 
@@ -1496,7 +1506,7 @@
         </li>
 
         <!--Skip  -->
-        <!-- <li> <a id="skipt">Skip</a> </li> -->
+        <li> <a id="skipt">Skip</a> </li>
 
         <!-- Done  -->
 
@@ -1540,7 +1550,7 @@
             </ul>
           </li> -->
 
-          <li style="padding: 0px;height:35.38px;">
+          <!-- <li style="padding: 0px;height:35.38px;">
             <div class="onoffswitch" id="tbutton">
               <input type="checkbox" name="onoffswitch" class="onoffswitch-checkbox" id="myonoffswitch">
               <label class="onoffswitch-label" for="myonoffswitch">
@@ -1548,7 +1558,7 @@
                 <span class="onoffswitch-switch"></span>
               </label>
             </div>
-          </li>
+          </li> -->
 
       </ul>
     </div> <!-- end of menubar -->
@@ -1578,7 +1588,7 @@
         <span class="text_button" onclick="leftsidebar_toggle()" title="Show/hide this toolbar panel">&ltrif;</span>
       </div>
 
-      <!-- <button class="leftsidebar_accordion active">Region Shape</button>
+      <button class="leftsidebar_accordion active" style="display:none">Region Shape</button>
       <div class="leftsidebar_accordion_panel show">
         <ul class="region_shape">
           <li id="region_shape_polygon" onclick="select_region_shape('polygon')" title="Polygon"><svg height="32" viewbox="0 0 32 32">
@@ -1601,7 +1611,7 @@
             </svg></li>
 
         </ul>
-      </div> -->
+      </div>
 
       <!-- Project -->
       <button class="leftsidebar_accordion active" id="project_panel_title">Project</button>
@@ -1833,17 +1843,7 @@
       </div> <!-- end of file not found panel -->
 
       <div id="page_start_info" class="display_area_content display_none">
-        <ul>
-          <li>To start annotation, <span class="text_button" title="Load or Add Images" onclick="sel_local_images()">select images</span> (or, add images from <span class="text_button" title="Add images from a web URL (e.g. http://www.robots.ox.ac.uk/~vgg/software/via/images/swan.jpg)"
-              onclick="project_file_add_url_with_input()">URL</span> or <span class="text_button" title="Add images using absolute path of file (e.g. /home/abhishek/image1.jpg)" onclick="project_file_add_abs_path_with_input()">absolute path</span>)
-            and draw regions</li>
-          <li>Use <span class="text_button" title="Toggle attributes editor panel" onclick="toggle_attributes_editor()">attribute editor</span> to define attributes (e.g. name) and <span class="text_button" title="Toggle annotations editor panel"
-              onclick="toggle_annotation_editor()">annotation editor</span> to describe each region (e.g. cat) using these attributes.</li>
-          <li>Remember to <span class="text_button" onclick="project_save_with_confirm()">save</span> your project before closing this application so that you can <span class="text_button" onclick="project_open_select_project_file()">load</span> it
-            later to continue annotation.</li>
-          <!-- <li>For help, see the <span class="text_button" onclick="set_display_area_content(VIA_DISPLAY_AREA_CONTENT_NAME.PAGE_GETTING_STARTED)">Getting Started</span> page and pre-loaded demo: <a href="http://www.robots.ox.ac.uk/~vgg/software/via/via_demo.html">image annotation</a> and <a href="http://www.robots.ox.ac.uk/~vgg/software/via/via_face_demo.html">face annotation</a>.</li> -->
-        </ul>
-
+        <h4>Click on request to get new image</h4>
       </div>
 
       <div id="page_getting_started" class="display_area_content display_none">
@@ -3230,48 +3230,47 @@ POSSIBILITY OF SUCH DAMAGE.
     }
 
     // updates currently selected region shape
-    function select_region_shape(sel_shape_name) {
-      for (var shape_name in VIA_REGION_SHAPE) {
-        var ui_element = document.getElementById('region_shape_' + VIA_REGION_SHAPE[shape_name]);
-        ui_element.classList.remove('selected');
-      }
+        function select_region_shape(sel_shape_name) {
+          for (var shape_name in VIA_REGION_SHAPE) {
+            var ui_element = document.getElementById('region_shape_' + VIA_REGION_SHAPE[shape_name]);
+            ui_element.classList.remove('selected');
+          }
 
-      _via_current_shape = sel_shape_name;
-      var ui_element = document.getElementById('region_shape_' + _via_current_shape);
-      ui_element.classList.add('selected');
+          _via_current_shape = sel_shape_name;
+          var ui_element = document.getElementById('region_shape_' + _via_current_shape);
+          ui_element.classList.add('selected');
 
-      switch (_via_current_shape) {
-        case VIA_REGION_SHAPE.RECT: // Fall-through
-          // case VIA_REGION_SHAPE.FREEHAND: // Fall-through
-        case VIA_REGION_SHAPE.ELLIPSE:
-          show_message('Press single click and drag mouse to draw ' +
-            _via_current_shape + ' region');
-          break;
+          switch (_via_current_shape) {
+            case VIA_REGION_SHAPE.RECT: // Fall-through
+              // case VIA_REGION_SHAPE.FREEHAND: // Fall-through
+            case VIA_REGION_SHAPE.ELLIPSE:
+              show_message('Press single click and drag mouse to draw ' +
+                _via_current_shape + ' region');
+              break;
 
-        case VIA_REGION_SHAPE.POLYLINE:
-        case VIA_REGION_SHAPE.POLYGON:
-          _via_is_user_drawing_polygon = false;
-          _via_current_polygon_region_id = -1;
+            case VIA_REGION_SHAPE.POLYLINE:
+            case VIA_REGION_SHAPE.POLYGON:
+              _via_is_user_drawing_polygon = false;
+              _via_current_polygon_region_id = -1;
 
-          show_message('[Single Click] to define polygon/polyline vertices, ' +
-            '[Double Click] to finish, [Esc] to cancel');
-          break;
+              show_message('[Single Click] to define polygon/polyline vertices, ' +
+                '[Double Click] to finish, [Esc] to cancel');
+              break;
 
-        case VIA_REGION_SHAPE.FREEHAND:
-          _via_is_user_drawing_free = false;
-          _via_current_free_region_id = -1;
+            case VIA_REGION_SHAPE.FREEHAND:
+              _via_is_user_drawing_free = false;
+              _via_current_free_region_id = -1;
 
-          show_message('[Single Click] to define first vertex and the move the mouse accordingly, ' +
-            '[Double Click] to finish, [Esc] to cancel');
-          break;
+              show_message('[Single Click] to define first vertex and the move the mouse accordingly, ' +
+                '[Double Click] to finish, [Esc] to cancel');
+              break;
 
 
-        default:
-          show_message('Unknown shape selected!');
-          break;
-      }
-    }
-
+            default:
+              show_message('Unknown shape selected!');
+              break;
+          }
+        }
     function set_all_canvas_size(w, h) {
       _via_reg_canvas.height = h;
       _via_reg_canvas.width = w;

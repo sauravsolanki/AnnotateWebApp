@@ -124,15 +124,16 @@ def mydata(data):
 def fetchNext(n):
     print('Skipped uid'+str(n))
     #########################
-    # push current uid
-    puid=PUIDS(int(n))
-    db.session.add(puid)
+    # push to uid current uid
+    uid=UIDS(int(n))
+    db.session.add(uid)
     db.session.commit()
     #########################
     # remove in-process of this n in Info table
     temp = Info.query.filter_by(uid=str(n),aid=str(current_user.id)).first()
-    db.session.delete(temp)
-    db.session.commit()
+    if temp:
+        db.session.delete(temp)
+        db.session.commit()
     #########################
     #  added to request queue
     aid=int(current_user.id)
@@ -271,6 +272,16 @@ def pushebackUID(uid):
 @app.route('/')
 def home():
     # TODO: show user their undone work and update info table(inprocess-undone)
+    temp=Info.query.filter_by(status="in_process")
+    undoneUID=[]
+    for i in temp:
+        # print(i.uid)
+        i.status="undone"
+        uid=UIDS(int(i.uid))
+        db.session.add(uid)
+    else:
+        db.session.commit()
+
     return render_template('home.html')
 
 
