@@ -1311,6 +1311,7 @@
         var curr_uid = 0;
         var socket;
         var varupdate;
+
           function autoupdatetest() {
             // var t=autoSaveFileForUpdate();
             // t=JSON.stringify(t);
@@ -1374,6 +1375,7 @@
               if(newfile){
                 newfile.innerHTML = "Please wait! Requesting....";
               }
+
               socket.emit('fetchURL', {{aid}});
             });
 
@@ -1400,6 +1402,7 @@
                 socket.emit('fetchUID', {{aid}});
               }else {
                 // request for new file
+
                 var newfile=document.getElementById('myrequest');
                 if(newfile){
                   newfile.innerHTML = "Please wait! Requesting....";
@@ -1412,12 +1415,13 @@
             //todo
             $('li #skipt').on('click', function() {
               // show the toast of "skipped" for a sec
-              show_message('skipped..',1000)
               if(current_file){
+                show_message('skipped..',1000);
                 socket.emit('fetchNext',String(current_file));
               }else {
                 show_message('no images loaded',2000)
               }
+
             });
             // fetchNextResponse
             socket.on('fetchNextResponse', function() {
@@ -1451,19 +1455,7 @@
               console.log(url);
             });
 
-
-
-            $('#exit').on('click', function() {
-              // TODO: retrive it back from current_userId
-              // var pushebackUID=document.getElementById('result').innerHTML
-              // if(pushebackUID){
-              socket.emit('pushebackUID', curr_uid);
-              // }
-            });
           });
-
-
-
         </script>
 
         <li>
@@ -7463,7 +7455,7 @@ POSSIBILITY OF SUCH DAMAGE.
       var html = [];
       html.push('<p class="title">' + config.title + '</p>');
 
-      html.push('<div class="user_inputs">');
+      html.push('<div class="user_inputs" style="display:none;">');
       var key;
       for (key in _via_user_input_data) {
         html.push('<div class="row">');
@@ -8490,6 +8482,10 @@ POSSIBILITY OF SUCH DAMAGE.
     }
 
     function project_save_with_confirm() {
+      if(!current_file){
+        show_message('request image first!',2000)
+        return ;
+      }
       var config = {
         'title': 'Save Project'
       };
